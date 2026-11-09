@@ -225,11 +225,27 @@ function isFreeDay(d){
   }
   return true;
 }
-function leaveCount(){
-  var n=0,end=S.endDate;
-  Object.keys(S.leave).forEach(function(k){if(S.leave[k]&&k.split("|")[0]<=end)n++;});
+// ---------- leave year ----------
+function migrate(){
+  if(S.annual==null){S.annual=37;S.yearStart="08-04";S.adjust={"2026-08-04":5};}
+  if(!S.adjust)S.adjust={};
+}
+function yearBounds(ref){
+  ref=ref||today();
+  var md=S.yearStart.split("-"),st=new Date(ref.getFullYear(),+md[0]-1,+md[1]);
+  if(st>ref)st=new Date(ref.getFullYear()-1,+md[0]-1,+md[1]);
+  var en=add(new Date(st.getFullYear()+1,st.getMonth(),st.getDate()),-1);
+  return {start:st,end:en,key:K(st)};
+}
+function yearEnd(){return K(yearBounds().end);}
+function plannerLeave(){
+  var y=yearBounds(),a=K(y.start),b=K(y.end),n=0;
+  Object.keys(S.leave).forEach(function(k){var d=k.split("|")[0];if(S.leave[k]&&d>=a&&d<=b)n++;});
   return n;
 }
+function adjustNow(){return +(S.adjust[yearBounds().key]||0);}
+function leaveCount(){return plannerLeave()+adjustNow();}
+function sessionsLeft(){return S.annual-leaveCount();}
 function cleanLeave(){ // remove leave on slots that are no longer clinical
   Object.keys(S.leave).forEach(function(k){
     var p=k.split("|"),d=P(p[0]),s=sessionsFor(d);
@@ -237,7 +253,7 @@ function cleanLeave(){ // remove leave on slots that are no longer clinical
   });
 }
 function rangeDays(){
-  var out=[],d=monday(today()),end=add(monday(P(S.endDate)),6);
+  var out=[],d=monday(today()),end=add(monday(P(yearEnd())),6);
   for(;d<=end;d=add(d,1))out.push(d);
   return out;
 }
@@ -283,7 +299,7 @@ function quickWins(){
   return res;
 }
 function nextDateFor(w,wd){
-  var end=P(S.endDate);
+  var end=P(yearEnd());
   for(var i=0;i<60;i++){
     var m=add(monday(today()),7*i),day=add(m,wd);
     if(day>end)return null;
@@ -368,7 +384,8 @@ function setSaveText(t){var el=document.getElementById("savetxt");if(el){el.text
 // ---------- render ----------
 var root=document.getElementById("root");
 function render(){
-  var used=leaveCount(),left=S.allowance-used;
+  migrate();
+  var used=leaveCount(),left=S.annual-used,yb=yearBounds();
   var runs=computeRuns().filter(function(r){return r.leave>0;});
   var longest=runs.reduce(function(m,r){return Math.max(m,r.days);},0);
   var h="";
@@ -376,8 +393,8 @@ function render(){
   h+="<div class='banner"+(lsMode&&!gh.gist?" on":"")+"'>Changes are saved on this device. To keep your other devices up to date, turn on sync in Settings.</div>";
   h+="<div class='tabs'>"+[["plan","Calendar"],["wins","Quick wins"],["list","Leave list"],["pattern","Job plan"],["settings","Settings"]].map(function(t){return "<button data-tab='"+t[0]+"' class='"+(view===t[0]?"on":"")+"'>"+t[1]+"</button>";}).join("")+"</div>";
   h+="<div class='stats'>"+
-    stat(used+" / "+S.allowance,"Sessions booked",left<0)+
-    stat(left,"Sessions left to "+fmtS(P(S.endDate)),left<0)+
+    stat(used+" / "+S.annual,"Sessions used "+dmy(yb.start)+"–"+dmy(yb.end),left<0)+
+    stat(left,"Sessions left to "+fmtS(yb.end),left<0)+
     stat(runs.length,"Breaks created")+
     stat(longest?longest+" days":"–","Longest break")+
   "</div>";
@@ -503,14 +520,14 @@ function leaveEntries(from,to){
   });
 }
 function listContent(){
-  var from=listFrom||K(today()),to=listTo||S.endDate;
+  var from=listFrom||K(today()),to=listTo||yearEnd();
   var es=leaveEntries(from,to);
   var tot=es.reduce(function(a,e){return a+e.n;},0),full=es.filter(function(e){return e.full;}).length;
   var sum=[
     ["Period",dmy(P(from))+" – "+dmy(P(to))],
     ["Sessions of leave",String(tot)],
     ["Days",es.length+(es.length?" ("+full+" full, "+(es.length-full)+" part)":"")],
-    ["Allowance",S.allowance+" sessions to "+dmy(P(S.endDate))+" · "+(S.allowance-leaveCount())+" still unbooked"]
+    ["Leave year",dmy(yearBounds().start)+" – "+dmy(yearBounds().end)+" · "+leaveCount()+" of "+S.annual+" sessions used · "+sessionsLeft()+" left"]
   ];
   var lines=es.map(function(e){return dmy(e.d)+" – "+longDate(e.d)+" – "+e.label;});
   var title="Annual leave request";
@@ -522,7 +539,7 @@ function listContent(){
 function renderList(){
   var c=listContent();
   var h="<div class='panel'><h2>Leave list</h2><p class='hint'>A summary followed by each date of leave, ready to paste. <b>Rich text</b> pastes as a formatted list into Apple Notes or Word; <b>Markdown</b> suits Obsidian or Bear.</p>";
-  h+="<div class='ctl'><label>From <input type='date' id='lf' value='"+(listFrom||K(today()))+"'></label><label>To <input type='date' id='lt' value='"+(listTo||S.endDate)+"'></label>"+
+  h+="<div class='ctl'><label>From <input type='date' id='lf' value='"+(listFrom||K(today()))+"'></label><label>To <input type='date' id='lt' value='"+(listTo||yearEnd())+"'></label>"+
     "<span><button class='btn sm' data-qr='next3'>Next 3 months</button> <button class='btn sm' data-qr='all'>Everything</button></span></div>";
   h+="<div class='ctl'><label><input type='radio' name='lfmt' value='rich' "+(listFmt==="rich"?"checked":"")+"> Rich text (Notes / Word)</label><label><input type='radio' name='lfmt' value='md' "+(listFmt==="md"?"checked":"")+"> Markdown</label><label><input type='radio' name='lfmt' value='plain' "+(listFmt==="plain"?"checked":"")+"> Plain text</label><button class='btn pri sm' id='lcopy'>Copy</button><span id='lmsg' style='font-size:12px;color:var(--muted)'></span></div>";
   h+=listFmt==="rich"?"<div class='lprev'>"+c.html+"</div>":"<textarea id='lta' class='lta' rows='"+Math.min(24,8+c.count)+"' readonly>"+esc(listFmt==="md"?c.md:c.plain)+"</textarea>";
@@ -559,8 +576,14 @@ function renderPattern(){
 
 function renderSettings(){
   var h="<div class='panel'><h2>Settings</h2>";
-  h+="<div class='ctl'><label>Week 1 starts (Monday) <input type='date' id='anchor' value='"+S.anchor+"'></label><label>Leave sessions <input type='number' id='allow' min='0' max='99' value='"+S.allowance+"' style='width:70px'></label><label>Use by <input type='date' id='endd' value='"+S.endDate+"'></label></div>";
-  h+="<div class='ctl'><label><input type='checkbox' id='resfree' "+(S.researchFree?"checked":"")+"> Count research time as free when working out breaks</label></div></div>";
+  h+="<div class='ctl'><label>Week 1 starts (Monday) <input type='date' id='anchor' value='"+S.anchor+"'></label></div>";
+  h+="<div class='ctl'><label><input type='checkbox' id='resfree' "+(S.researchFree?"checked":"")+"> Count research time as free when working out breaks</label></div>";
+  var yb=yearBounds();
+  h+="</div><div class='panel'><h2>Leave year</h2><p class='hint'>Your annual allowance runs "+dmy(yb.start)+" – "+dmy(yb.end)+" and starts again automatically each year on the same date.</p>";
+  h+="<div class='ctl'><label>Annual allowance <input type='number' id='annual' min='0' max='199' value='"+S.annual+"' style='width:70px'> sessions</label><label>Leave year starts <input type='date' id='ystart' value='"+K(yb.start)+"'></label></div>";
+  h+="<div class='ctl'><label>Sessions used outside the planner this leave year <input type='number' id='adj' min='0' max='199' value='"+adjustNow()+"' style='width:70px'></label></div>";
+  h+="<table class='t' style='max-width:460px'><tr><td>Booked in the planner</td><td style='text-align:right'><b>"+plannerLeave()+"</b></td></tr><tr><td>Used outside the planner</td><td style='text-align:right'><b>"+adjustNow()+"</b></td></tr><tr><td>Total used</td><td style='text-align:right'><b>"+leaveCount()+" / "+S.annual+"</b></td></tr><tr><td>Left</td><td style='text-align:right'><b>"+sessionsLeft()+"</b></td></tr></table>";
+  h+="<div class='note'>Use \"outside the planner\" for leave taken before you started using it, or anything the roster has charged that isn't in the calendar. It resets to 0 when a new leave year starts. TOIL isn't counted.</div></div>";
   h+="<div class='panel'><h2>Already booked or unavailable</h2><p class='hint'>Booked periods count as time off; unavailable periods (e.g. the leave pool is full) flag any leave you book in them.</p><table class='t'><tr><th>Label</th><th>From</th><th>To</th><th>Type</th><th></th></tr>";
   S.blocks.forEach(function(b){
     h+="<tr><td><input type='text' data-bl='"+b.id+"' data-f='label' value='"+esc(b.label)+"' style='width:100%;border:1px solid var(--line);border-radius:6px;padding:4px 7px'></td><td><input type='date' data-bl='"+b.id+"' data-f='start' value='"+esc(b.start)+"'></td><td><input type='date' data-bl='"+b.id+"' data-f='end' value='"+esc(b.end)+"'></td><td><select data-bl='"+b.id+"' data-f='kind'><option value='booked'"+(b.kind==="booked"?" selected":"")+">Booked</option><option value='unavailable'"+(b.kind==="unavailable"?" selected":"")+">Unavailable</option></select></td><td><button class='btn sm dan' data-delbl='"+b.id+"'>Remove</button></td></tr>";
@@ -639,8 +662,9 @@ function bind(){
   var m=q("#mirror");if(m)m.onchange=function(){editMirror=m.checked;};
   var rp=q("#resetpat");if(rp)rp.onclick=function(){S.pattern=defaultPattern();changed();};
   var an=q("#anchor");if(an)an.onchange=function(){if(!an.value)return;var d=P(an.value);if(dow(d)!==0){an.value=K(monday(d));d=monday(d);}S.anchor=K(d);changed();};
-  var al=q("#allow");if(al)al.onchange=function(){S.allowance=Math.max(0,parseInt(al.value,10)||0);changed();};
-  var ed=q("#endd");if(ed)ed.onchange=function(){if(ed.value){S.endDate=ed.value;changed();}};
+  var an=q("#annual");if(an)an.onchange=function(){S.annual=Math.max(0,parseInt(an.value,10)||0);changed();};
+  var ys=q("#ystart");if(ys)ys.onchange=function(){if(ys.value){S.yearStart=ys.value.slice(5);changed();}};
+  var aj=q("#adj");if(aj)aj.onchange=function(){S.adjust[yearBounds().key]=Math.max(0,parseInt(aj.value,10)||0);changed();};
   var rf=q("#resfree");if(rf)rf.onchange=function(){S.researchFree=rf.checked;changed();};
   qa("[data-bl]").forEach(function(el){el.onchange=function(){var b=S.blocks.filter(function(x){return x.id===el.dataset.bl;})[0];if(b){b[el.dataset.f]=el.value;changed();}};});
   qa("[data-delbl]").forEach(function(el){el.onclick=function(){S.blocks=S.blocks.filter(function(x){return x.id!==el.dataset.delbl;});changed();};});
@@ -650,7 +674,7 @@ function bind(){
   var lt=q("#lt");if(lt)lt.onchange=function(){listTo=lt.value||null;render();};
   qa("[data-qr]").forEach(function(el){el.onclick=function(){
     listFrom=K(today());
-    if(el.dataset.qr==="next3"){var e=add(today(),0);e.setMonth(e.getMonth()+3);listTo=K(e);}else listTo=S.endDate;
+    if(el.dataset.qr==="next3"){var e=add(today(),0);e.setMonth(e.getMonth()+3);listTo=K(e);}else listTo=yearEnd();
     render();
   };});
   qa("input[name=lfmt]").forEach(function(el){el.onchange=function(){listFmt=el.value;render();};});
