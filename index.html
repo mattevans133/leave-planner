@@ -49,6 +49,7 @@ h1{font-size:22px;margin:0;font-weight:650;letter-spacing:-.2px}
 .s.O{background:var(--off-bg);color:var(--off)}
 .s.F{background:var(--fix-bg);color:var(--fix)}
 .s.L{background:var(--leave);color:#fff}
+.s.H{background:#efe9fa;color:#7a62b0}
 .s.E{background:transparent;color:var(--faint);border:1px dashed var(--line)}
 .s.click{cursor:pointer}
 .s.click:hover{outline:2px solid var(--clin);outline-offset:1px}
@@ -128,6 +129,10 @@ table.t tr:last-child td{border-bottom:0}
 .note{font-size:12px;color:var(--muted);margin-top:8px}
 .banner{background:#fff4e5;border:1px solid #f3d3a6;color:#7a4b06;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:14px;display:none}
 .banner.on{display:block}
+.lprev{border:1px solid var(--line);border-radius:8px;padding:4px 16px;background:#fff}
+.lprev h3{font-size:16px;margin:12px 0 8px}
+.lprev ul{padding-left:20px}
+.lta{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical;background:#fff}
 @media (max-width:640px){
   h1{font-size:19px}
   .wrap{padding:14px 10px 50px}
@@ -147,8 +152,11 @@ var FULLMON=["January","February","March","April","May","June","July","August","
 var collapsed={};
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var PREF={0:1,3:1,4:1}; // Mon, Thu, Fri
-var TYPE_NAME={C:"Clinical",R:"Research",O:"Free",F:"Fixed",E:"None"};
+var TYPE_NAME={C:"Clinical",R:"Research",O:"Free",F:"Fixed",E:"None",H:"Bank holiday"};
 var CYCLE=["C","R","O","F","E"];
+// England & Wales bank holidays
+var BH={"2026-12-25":"Christmas Day","2026-12-28":"Boxing Day (substitute)","2027-01-01":"New Year's Day","2027-03-26":"Good Friday","2027-03-29":"Easter Monday","2027-05-03":"Early May bank holiday","2027-05-31":"Spring bank holiday","2027-08-30":"Summer bank holiday","2027-12-27":"Christmas Day (substitute)","2027-12-28":"Boxing Day (substitute)"};
+function isBH(d){return !!BH[K(d)];}
 
 // Default 8-week pattern from the Bear note (weeks 5–8 repeat 1–4, except Wk4 Fri AM off)
 function defaultPattern(){
@@ -201,6 +209,7 @@ function isLeave(d,i){return !!S.leave[lk(d,i)];}
 // effective type per slot after leave
 function eff(d){
   var s=sessionsFor(d); if(!s)return null;
+  if(isBH(d))return s.map(function(t){return t==="E"?"E":"H";});
   return s.map(function(t,i){return (t==="C"&&isLeave(d,i))?"L":t;});
 }
 function isFreeDay(d){
@@ -224,7 +233,7 @@ function leaveCount(){
 function cleanLeave(){ // remove leave on slots that are no longer clinical
   Object.keys(S.leave).forEach(function(k){
     var p=k.split("|"),d=P(p[0]),s=sessionsFor(d);
-    if(!s||s[+p[1]]!=="C")delete S.leave[k];
+    if(!s||s[+p[1]]!=="C"||isBH(d))delete S.leave[k];
   });
 }
 function rangeDays(){
@@ -280,7 +289,7 @@ function nextDateFor(w,wd){
     if(day>end)return null;
     if(day<=today())continue;
     if(rotaWeek(m)!==w)continue;
-    var b=blockFor(day);if(b)continue;
+    var b=blockFor(day);if(b||isBH(day))continue;
     var s=sessionsFor(day);
     var already=s.every(function(t,j){return t!=="C"||isLeave(day,j);});
     if(already)continue;
@@ -298,8 +307,9 @@ function buildDoc(){
 }
 function changed(){
   cleanLeave();
-  dirty=true;
-  if(lsMode){try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}dirty=false;}
+  dirty=true;S.updatedAt=Date.now();
+  if(lsMode){try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}dirty=false;
+    if(gh.token&&gh.gist){clearTimeout(syncTimer);syncText="Syncing…";syncTimer=setTimeout(syncPush,2500);}}
   render();
   if(art&&canSave){clearTimeout(saveTimer);saveTimer=setTimeout(save,2500);}
 }
@@ -315,6 +325,44 @@ function save(){
     if(canSave&&!/conflict/.test(c)){clearTimeout(saveTimer);saveTimer=setTimeout(save,6000);}
   });
 }
+// ---------- GitHub gist sync (GitHub Pages version) ----------
+var gh={token:"",gist:""},syncTimer=null,syncText="";
+try{gh.token=localStorage.getItem("lp-gh-token")||"";gh.gist=localStorage.getItem("lp-gh-gist")||"";}catch(e){}
+var GIST_FILE="leave-planner.json";
+function ghFetch(method,path,body){
+  return fetch("https://api.github.com"+path,{method:method,headers:{"Authorization":"Bearer "+gh.token,"Accept":"application/vnd.github+json"},body:body?JSON.stringify(body):undefined})
+    .then(function(r){if(!r.ok)throw new Error("GitHub said "+r.status+(r.status===401?" (token not accepted)":r.status===404?" (gist not found)":""));return r.json();});
+}
+function hhmm(){var d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
+function syncPush(){
+  if(!gh.token||!gh.gist)return Promise.resolve();
+  var files={};files[GIST_FILE]={content:JSON.stringify(S)};
+  return ghFetch("PATCH","/gists/"+gh.gist,{files:files}).then(function(){syncText="Synced "+hhmm();setSaveText(syncText);})
+    .catch(function(e){syncText="Sync failed – "+e.message;setSaveText(syncText);});
+}
+function syncPull(){
+  if(!gh.token||!gh.gist)return Promise.resolve(false);
+  return ghFetch("GET","/gists/"+gh.gist).then(function(g){
+    var f=g.files&&g.files[GIST_FILE];if(!f)return false;
+    var o=JSON.parse(f.content);
+    if(o&&o.pattern&&(o.updatedAt||0)>(S.updatedAt||0)){S=o;try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}syncText="Synced "+hhmm();return true;}
+    syncText="Synced "+hhmm();
+    if((S.updatedAt||0)>(o.updatedAt||0))return syncPush().then(function(){return false;});
+    return false;
+  }).catch(function(e){syncText="Sync failed – "+e.message;return false;});
+}
+function syncConnect(token,gist){
+  gh.token=token.trim();gh.gist=(gist||"").trim().replace(/^.*\//,"");
+  try{localStorage.setItem("lp-gh-token",gh.token);}catch(e){}
+  var p;
+  if(gh.gist){p=syncPull();}
+  else{
+    var files={};files[GIST_FILE]={content:JSON.stringify(S)};
+    p=ghFetch("POST","/gists",{description:"Leave Planner data",public:false,files:files}).then(function(g){gh.gist=g.id;syncText="Synced "+hhmm();});
+  }
+  return p.then(function(){try{localStorage.setItem("lp-gh-gist",gh.gist);}catch(e){}});
+}
+function syncDisconnect(){gh={token:"",gist:""};syncText="";try{localStorage.removeItem("lp-gh-token");localStorage.removeItem("lp-gh-gist");}catch(e){}}
 function setSaveText(t){var el=document.getElementById("savetxt");if(el){el.textContent=t;el.className="save"+(dirty?" dirty":"");}}
 
 // ---------- render ----------
@@ -324,9 +372,9 @@ function render(){
   var runs=computeRuns().filter(function(r){return r.leave>0;});
   var longest=runs.reduce(function(m,r){return Math.max(m,r.days);},0);
   var h="";
-  h+="<header><div><h1>Leave Planner</h1><div class='sub'>8-week rota · Week 1 = w/c "+esc(fmtS(P(S.anchor)))+" "+P(S.anchor).getFullYear()+" · this week is <b>Week "+(rotaWeek(today())+1)+"</b></div></div><div class='save' id='savetxt'>"+(lsMode?"Saved in this browser only":(dirty?"Unsaved changes":"All changes saved"))+"</div></header>";
-  h+="<div class='banner"+(lsMode?" on":"")+"'>Changes are saved on this device. To move them to another device, use Settings → Backup.</div>";
-  h+="<div class='tabs'>"+[["plan","Calendar"],["wins","Quick wins"],["pattern","Job plan"],["settings","Settings"]].map(function(t){return "<button data-tab='"+t[0]+"' class='"+(view===t[0]?"on":"")+"'>"+t[1]+"</button>";}).join("")+"</div>";
+  h+="<header><div><h1>Leave Planner</h1><div class='sub'>8-week rota · Week 1 = w/c "+esc(fmtS(P(S.anchor)))+" "+P(S.anchor).getFullYear()+" · this week is <b>Week "+(rotaWeek(today())+1)+"</b></div></div><div class='save' id='savetxt'>"+(lsMode?(syncText||(gh.token?"Saved on this device":"Saved on this device only")):(dirty?"Unsaved changes":"All changes saved"))+"</div></header>";
+  h+="<div class='banner"+(lsMode&&!gh.gist?" on":"")+"'>Changes are saved on this device. To keep your other devices up to date, turn on sync in Settings.</div>";
+  h+="<div class='tabs'>"+[["plan","Calendar"],["wins","Quick wins"],["list","Leave list"],["pattern","Job plan"],["settings","Settings"]].map(function(t){return "<button data-tab='"+t[0]+"' class='"+(view===t[0]?"on":"")+"'>"+t[1]+"</button>";}).join("")+"</div>";
   h+="<div class='stats'>"+
     stat(used+" / "+S.allowance,"Sessions booked",left<0)+
     stat(left,"Sessions left to "+fmtS(P(S.endDate)),left<0)+
@@ -335,6 +383,7 @@ function render(){
   "</div>";
   if(view==="plan")h+=renderPlan(runs);
   if(view==="wins")h+=renderWins();
+  if(view==="list")h+=renderList();
   if(view==="pattern")h+=renderPattern();
   if(view==="settings")h+=renderSettings();
   root.innerHTML=h;
@@ -393,7 +442,7 @@ function renderPlan(runs){
         (tmpl?"<div class='wo slot' data-day='"+k+"' title='Planned workout slot – tap to plan'>◦ "+esc(tmpl)+"</div>":
         "<div class='wo add' data-day='"+k+"'>+ workout</div>");
       h+="<div class='"+cls+"'><div class='top'><span class='dt' data-day='"+k+"'>"+d.getDate()+(d.getDate()===1||i+j===0?" "+MON[d.getMonth()]:"")+"</span>"+(S.onCall[k]?"<span class='oc'>ON CALL</span>":"")+"</div><div class='pills'>"+pills+"</div>"+
-        (b?"<div class='tag'>"+esc(b.label)+"</div>":"")+woHtml+
+        (isBH(d)?"<div class='tag'>🏦 "+esc(BH[k])+"</div>":"")+(b?"<div class='tag'>"+esc(b.label)+"</div>":"")+woHtml+
         (warn?"<span class='warn' title='Clash'>!</span>":"")+
       "</div>";
     }
@@ -411,7 +460,7 @@ function renderPlan(runs){
   return h;
 }
 function legend(){
-  return "<div class='legend'><span><i class='sw' style='background:var(--clin-bg);border:1px solid #c6d9f0'></i>Clinical</span><span><i class='sw' style='background:var(--leave)'></i>Leave</span><span><i class='sw' style='background:var(--res-bg)'></i>Research</span><span><i class='sw' style='background:var(--off-bg)'></i>Free / off</span><span><i class='sw' style='background:var(--fix-bg)'></i>Fixed (ECT / private)</span><span><i class='sw' style='background:var(--run);border:1px solid var(--run-line)'></i>Break</span><span><i class='sw' style='background:var(--block)'></i>Already booked</span><span><i class='sw' style='background:var(--na)'></i>Leave unavailable</span><span><span class='star'>★</span> Preferred day</span><span><i class='sw' style='background:#f1f9f4;border:1px dashed #9fd2b4'></i>Workout slot</span></div>";
+  return "<div class='legend'><span><i class='sw' style='background:var(--clin-bg);border:1px solid #c6d9f0'></i>Clinical</span><span><i class='sw' style='background:var(--leave)'></i>Leave</span><span><i class='sw' style='background:var(--res-bg)'></i>Research</span><span><i class='sw' style='background:var(--off-bg)'></i>Free / off</span><span><i class='sw' style='background:var(--fix-bg)'></i>Fixed (ECT / private)</span><span><i class='sw' style='background:var(--run);border:1px solid var(--run-line)'></i>Break</span><span><i class='sw' style='background:#efe9fa'></i>Bank holiday</span><span><i class='sw' style='background:var(--block)'></i>Already booked</span><span><i class='sw' style='background:var(--na)'></i>Leave unavailable</span><span><span class='star'>★</span> Preferred day</span><span><i class='sw' style='background:#f1f9f4;border:1px dashed #9fd2b4'></i>Workout slot</span></div>";
 }
 function woTemplate(d){
   var w=rotaWeek(d)%4,wd=dow(d);
@@ -435,6 +484,51 @@ function renderWins(){
   return h;
 }
 
+var FULLDOW=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var listFrom=null,listTo=null,listFmt="rich";
+function dmy(d){return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getFullYear()).slice(2);}
+function longDate(d){return FULLDOW[dow(d)]+", "+d.getDate()+" "+FULLMON[d.getMonth()]+" "+d.getFullYear();}
+function leaveEntries(from,to){
+  var byDay={};
+  Object.keys(S.leave).forEach(function(k){
+    var p=k.split("|");if(p[0]<from||p[0]>to)return;
+    (byDay[p[0]]=byDay[p[0]]||[]).push(+p[1]);
+  });
+  return Object.keys(byDay).sort().map(function(k){
+    var d=P(k),sl=byDay[k].sort(),s=sessionsFor(d);
+    var clin=s.filter(function(t){return t==="C";}).length;
+    var names=sl.map(function(i){return SLOTS[i];}).join(", ");
+    var full=sl.length===clin&&clin>1;
+    return {d:d,n:sl.length,full:full,label:(full?"Full day ("+names+")":names)};
+  });
+}
+function listContent(){
+  var from=listFrom||K(today()),to=listTo||S.endDate;
+  var es=leaveEntries(from,to);
+  var tot=es.reduce(function(a,e){return a+e.n;},0),full=es.filter(function(e){return e.full;}).length;
+  var sum=[
+    ["Period",dmy(P(from))+" – "+dmy(P(to))],
+    ["Sessions of leave",String(tot)],
+    ["Days",es.length+(es.length?" ("+full+" full, "+(es.length-full)+" part)":"")],
+    ["Allowance",S.allowance+" sessions to "+dmy(P(S.endDate))+" · "+(S.allowance-leaveCount())+" still unbooked"]
+  ];
+  var lines=es.map(function(e){return dmy(e.d)+" – "+longDate(e.d)+" – "+e.label;});
+  var title="Annual leave request";
+  var plain=title+"\n\n"+sum.map(function(r){return r[0]+": "+r[1];}).join("\n")+"\n\n"+(lines.length?lines.join("\n"):"No leave booked in this period.");
+  var md="## "+title+"\n\n"+sum.map(function(r){return "- **"+r[0]+":** "+r[1];}).join("\n")+"\n\n### Dates\n\n"+(lines.length?lines.map(function(l){return "- "+l;}).join("\n"):"_No leave booked in this period._");
+  var html="<h3>"+title+"</h3><p>"+sum.map(function(r){return "<b>"+esc(r[0])+":</b> "+esc(r[1]);}).join("<br>")+"</p>"+(lines.length?"<ul>"+lines.map(function(l){return "<li>"+esc(l)+"</li>";}).join("")+"</ul>":"<p><i>No leave booked in this period.</i></p>");
+  return {plain:plain,md:md,html:html,count:es.length};
+}
+function renderList(){
+  var c=listContent();
+  var h="<div class='panel'><h2>Leave list</h2><p class='hint'>A summary followed by each date of leave, ready to paste. <b>Rich text</b> pastes as a formatted list into Apple Notes or Word; <b>Markdown</b> suits Obsidian or Bear.</p>";
+  h+="<div class='ctl'><label>From <input type='date' id='lf' value='"+(listFrom||K(today()))+"'></label><label>To <input type='date' id='lt' value='"+(listTo||S.endDate)+"'></label>"+
+    "<span><button class='btn sm' data-qr='next3'>Next 3 months</button> <button class='btn sm' data-qr='all'>Everything</button></span></div>";
+  h+="<div class='ctl'><label><input type='radio' name='lfmt' value='rich' "+(listFmt==="rich"?"checked":"")+"> Rich text (Notes / Word)</label><label><input type='radio' name='lfmt' value='md' "+(listFmt==="md"?"checked":"")+"> Markdown</label><label><input type='radio' name='lfmt' value='plain' "+(listFmt==="plain"?"checked":"")+"> Plain text</label><button class='btn pri sm' id='lcopy'>Copy</button><span id='lmsg' style='font-size:12px;color:var(--muted)'></span></div>";
+  h+=listFmt==="rich"?"<div class='lprev'>"+c.html+"</div>":"<textarea id='lta' class='lta' rows='"+Math.min(24,8+c.count)+"' readonly>"+esc(listFmt==="md"?c.md:c.plain)+"</textarea>";
+  h+="</div>";
+  return h;
+}
 function renderPattern(){
   var h="<div class='panel'><h2>Job plan · 8-week cycle</h2><p class='hint'>Tap a session to change its type (clinical → research → free → fixed → none). Any booked leave on a session that stops being clinical is removed.</p>";
   h+="<div class='ctl'><label><input type='checkbox' id='mirror' "+(editMirror?"checked":"")+"> Copy changes to the matching week (1↔5, 2↔6, 3↔7, 4↔8)</label><button class='btn sm' id='resetpat'>Reset to Bear note</button></div>";
@@ -475,6 +569,15 @@ function renderSettings(){
   h+="<div class='panel'><h2>On-call (1:24)</h2><p class='hint'>On-call no longer falls on a set rota day, so mark each one from the calendar (tap the date). On-call days don't count as free, and leave booked on one is flagged.</p>";
   var oc=Object.keys(S.onCall).filter(function(k){return S.onCall[k];}).sort();
   h+=oc.length?oc.map(function(k){return "<span class='pill-day' style='margin:0 6px 6px 0'>"+fmt(P(k))+" <a href='#' data-unoc='"+k+"' style='color:var(--na-ink);text-decoration:none'>×</a></span>";}).join(""):"<div class='empty'>None marked yet.</div>";
+  if(lsMode){
+    h+="</div><div class='panel'><h2>Sync between devices</h2>";
+    if(gh.token&&gh.gist){
+      h+="<p class='hint'>On. Changes are saved to a secret gist on your GitHub account and picked up by your other devices when they open the planner.</p><div class='ctl'><span>Gist ID: <code id='gid'>"+esc(gh.gist)+"</code></span><button class='btn sm' id='gcopy'>Copy ID</button><button class='btn sm' id='gnow'>Sync now</button><button class='btn sm dan' id='goff'>Turn off on this device</button></div><div class='note'>To add another device: open the planner there, go to Settings and enter your token plus this Gist ID.</div>";
+    }else{
+      h+="<p class='hint'>Keep your phone, iPad and laptop in step through a secret gist on your GitHub account. You'll need a GitHub token with the <b>gist</b> permission: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token, tick only <b>gist</b>, and set no expiry or a long one.</p>";
+      h+="<div class='ctl' style='flex-direction:column;align-items:stretch'><label style='display:block'>Token<br><input type='password' id='gtok' placeholder='ghp_…' style='width:100%;max-width:420px'></label><label style='display:block'>Gist ID <span style='color:var(--muted)'>(leave blank on your first device; paste it in on the others)</span><br><input type='text' id='ggist' placeholder='blank = create a new one' style='width:100%;max-width:420px'></label></div><div class='ctl'><button class='btn pri sm' id='gon'>Turn on sync</button><span id='gmsg' style='font-size:12px;color:var(--muted)'></span></div><div class='note'>Your token is stored only in this browser and is sent only to GitHub. A secret gist is unlisted, so only someone with its link can see it.</div>";
+    }
+  }
   h+="</div><div class='panel'><h2>Backup</h2><p class='hint'>Copy everything (job plan, leave, on-call, workouts) as a code, then paste it into the planner on another device or browser and tap Restore.</p><div class='ctl'><button class='btn sm' id='bk-copy'>Copy backup code</button><span id='bk-msg' style='font-size:12px;color:var(--muted)'></span></div><textarea id='bk-in' rows='3' placeholder='Paste a backup code here' style='width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:12px ui-monospace,monospace'></textarea><div style='margin-top:8px'><button class='btn sm' id='bk-restore'>Restore</button></div>";
   h+="</div><div class='panel'><h2>Reset</h2><button class='btn sm dan' id='clearleave'>Clear all booked leave</button></div>";
   return h;
@@ -484,10 +587,10 @@ function renderSettings(){
 var scrim=document.getElementById("scrim"),dlg=document.getElementById("dlg");
 function openDay(k){
   var d=P(k),s=sessionsFor(d),e=eff(d),b=blockFor(d);
-  var h="<h3>"+fmt(d)+" "+d.getFullYear()+"</h3><div class='meta'>Rota Week "+(rotaWeek(d)+1)+(b?" · "+esc(b.label):"")+"</div>";
+  var h="<h3>"+fmt(d)+" "+d.getFullYear()+"</h3><div class='meta'>Rota Week "+(rotaWeek(d)+1)+(isBH(d)?" · "+esc(BH[k]):"")+(b?" · "+esc(b.label):"")+"</div>";
   if(e){
     h+="<div class='sess'>"+e.map(function(t,i){return t==="E"?"":pill(t,SLOTS[i]+" · "+(t==="L"?"Leave":TYPE_NAME[t]));}).join("")+"</div>";
-    var clin=s.map(function(t,i){return t==="C"?i:-1;}).filter(function(i){return i>=0;});
+    var clin=isBH(d)?[]:s.map(function(t,i){return t==="C"?i:-1;}).filter(function(i){return i>=0;});
     if(clin.length){
       var all=clin.every(function(i){return isLeave(d,i);});
       h+="<div class='acts' style='justify-content:flex-start;margin:0 0 12px'><button class='btn sm "+(all?"":"pri")+"' id='dl-all'>"+(all?"Cancel leave for this day":"Book whole day ("+clin.length+" session"+(clin.length>1?"s":"")+")")+"</button></div>";
@@ -543,6 +646,37 @@ function bind(){
   qa("[data-delbl]").forEach(function(el){el.onclick=function(){S.blocks=S.blocks.filter(function(x){return x.id!==el.dataset.delbl;});changed();};});
   var ab=q("#addbl");if(ab)ab.onclick=function(){S.blocks.push({id:"b"+Date.now(),label:"New period",start:"",end:"",kind:"booked"});changed();};
   qa("[data-unoc]").forEach(function(el){el.onclick=function(ev){ev.preventDefault();delete S.onCall[el.dataset.unoc];changed();};});
+  var lf=q("#lf");if(lf)lf.onchange=function(){listFrom=lf.value||null;render();};
+  var lt=q("#lt");if(lt)lt.onchange=function(){listTo=lt.value||null;render();};
+  qa("[data-qr]").forEach(function(el){el.onclick=function(){
+    listFrom=K(today());
+    if(el.dataset.qr==="next3"){var e=add(today(),0);e.setMonth(e.getMonth()+3);listTo=K(e);}else listTo=S.endDate;
+    render();
+  };});
+  qa("input[name=lfmt]").forEach(function(el){el.onchange=function(){listFmt=el.value;render();};});
+  var lc=q("#lcopy");if(lc)lc.onclick=function(){
+    var c=listContent(),msg=q("#lmsg");
+    var ok=function(){msg.textContent="Copied – paste it into Notes, Word or wherever you need it.";};
+    var fallback=function(){
+      if(listFmt==="rich"){listFmt="plain";render();q("#lmsg").textContent="Couldn't copy here – select the text below and copy it.";}
+      else{var ta=q("#lta");ta.focus();ta.select();msg.textContent="Couldn't copy automatically – the text is selected, so copy it now.";}
+    };
+    try{
+      if(listFmt==="rich"&&window.ClipboardItem&&navigator.clipboard.write){
+        var item=new ClipboardItem({"text/html":new Blob([c.html],{type:"text/html"}),"text/plain":new Blob([c.plain],{type:"text/plain"})});
+        navigator.clipboard.write([item]).then(ok,fallback);
+      }else navigator.clipboard.writeText(listFmt==="md"?c.md:c.plain).then(ok,fallback);
+    }catch(e){fallback();}
+  };
+  var gon=q("#gon");if(gon)gon.onclick=function(){
+    var t=q("#gtok").value,g=q("#ggist").value,m=q("#gmsg");
+    if(!t.trim()){m.textContent="Add your token first.";return;}
+    m.textContent="Connecting…";
+    syncConnect(t,g).then(function(){if(!gh.gist)throw new Error(syncText);render();}).catch(function(e){m.textContent=(e&&e.message)||"Couldn't connect.";if(!gh.gist)syncDisconnect();});
+  };
+  var gc=q("#gcopy");if(gc)gc.onclick=function(){try{navigator.clipboard.writeText(gh.gist).then(function(){gc.textContent="Copied";},function(){});}catch(e){}};
+  var gn=q("#gnow");if(gn)gn.onclick=function(){gn.textContent="Syncing…";syncPull().then(function(changedRemote){render();});};
+  var go=q("#goff");if(go)go.onclick=function(){syncDisconnect();render();};
   var bc=q("#bk-copy");if(bc)bc.onclick=function(){
     var code=JSON.stringify(S),msg=q("#bk-msg"),ta=q("#bk-in");
     var done=function(){msg.textContent="Copied – paste it into the planner on your other device.";};
@@ -575,7 +709,9 @@ if(window.claude&&typeof window.claude.use==="function"){
 function enableLS(){
   lsMode=true;
   try{var x=localStorage.getItem("leave-planner-state");if(x){var o=JSON.parse(x);if(o&&o.pattern)S=o;}}catch(e){}
+  if(gh.token&&gh.gist){syncText="Syncing…";syncPull().then(function(){render();});}
 }
+document.addEventListener("visibilitychange",function(){if(lsMode&&document.visibilityState==="visible"&&gh.token&&gh.gist)syncPull().then(function(c){if(c)render();else setSaveText(syncText);});});
 })();
 </script>
 </body>
