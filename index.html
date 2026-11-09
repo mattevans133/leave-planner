@@ -210,7 +210,13 @@ function isLeave(d,i){return !!S.leave[lk(d,i)];}
 function eff(d){
   var s=sessionsFor(d); if(!s)return null;
   if(isBH(d))return s.map(function(t){return t==="E"?"E":"H";});
-  return s.map(function(t,i){return (t==="C"&&isLeave(d,i))?"L":t;});
+  var cov=dayCovered(d,s);
+  return s.map(function(t,i){return (t==="C"&&(isLeave(d,i)||(i===2&&cov)))?"L":t;});
+}
+// Evening sessions don't count against leave: they're covered when the day sessions are on leave
+function dayCovered(d,s){
+  var day=[0,1].filter(function(i){return s[i]==="C";});
+  return day.length>0&&day.every(function(i){return isLeave(d,i);});
 }
 function isFreeDay(d){
   var k=K(d);
@@ -249,7 +255,7 @@ function sessionsLeft(){return S.annual-leaveCount();}
 function cleanLeave(){ // remove leave on slots that are no longer clinical
   Object.keys(S.leave).forEach(function(k){
     var p=k.split("|"),d=P(p[0]),s=sessionsFor(d);
-    if(!s||s[+p[1]]!=="C"||isBH(d))delete S.leave[k];
+    if(!s||s[+p[1]]!=="C"||isBH(d)||+p[1]===2)delete S.leave[k];
   });
 }
 function rangeDays(){
@@ -266,7 +272,7 @@ function computeRuns(){
       if(!cur)cur={start:d,end:d,leave:0,days:0,pref:0};
       cur.end=d;cur.days++;
       var e=eff(d);
-      if(e){var l=e.filter(function(t){return t==="L";}).length;cur.leave+=l;if(l&&PREF[dow(d)])cur.pref++;}
+      if(e){var l=e.filter(function(t,i){return t==="L"&&i!==2;}).length;cur.leave+=l;if(l&&PREF[dow(d)])cur.pref++;}
     }else{if(cur)runs.push(cur);cur=null;}
   });
   if(cur)runs.push(cur);
@@ -278,7 +284,7 @@ function quickWins(){
   for(var w=0;w<8;w++)for(var wd=0;wd<5;wd++){
     var s=S.pattern[w][wd];
     if(s.indexOf("F")>=0)continue;
-    var cost=s.filter(function(t){return t==="C";}).length;
+    var cost=s.filter(function(t,i){return t==="C"&&i!==2;}).length;
     if(!cost)continue;
     // run length using pattern only (no leave), with this day cleared
     var idx=w*7+wd,len=1;
@@ -307,7 +313,7 @@ function nextDateFor(w,wd){
     if(rotaWeek(m)!==w)continue;
     var b=blockFor(day);if(b||isBH(day))continue;
     var s=sessionsFor(day);
-    var already=s.every(function(t,j){return t!=="C"||isLeave(day,j);});
+    var already=s.every(function(t,j){return t!=="C"||j===2||isLeave(day,j);});
     if(already)continue;
     return day;
   }
@@ -419,7 +425,7 @@ function stat(n,l,warn){return "<div class='stat"+(warn?" warn":"")+"'><div clas
 function pill(t,label,cls,attrs){return "<span class='s "+t+(cls?" "+cls:"")+"' "+(attrs||"")+">"+label+"</span>";}
 
 function renderPlan(runs){
-  var h="<div class='panel'><h2>Calendar</h2><p class='hint'>Tap a blue clinical session to book it as leave (orange); tap again to cancel. Tap a date to book the whole day, mark on-call or plan a workout. Yellow shading shows each break you've created. Tap a month name to fold it away.</p>";
+  var h="<div class='panel'><h2>Calendar</h2><p class='hint'>Tap a blue clinical session to book it as leave (orange); tap again to cancel. Evening sessions don't count against your allowance – they're covered automatically when AM and PM are on leave. Tap a date to book the whole day, mark on-call or plan a workout. Yellow shading shows each break you've created. Tap a month name to fold it away.</p>";
   h+=legend();
   var runSet={};runs.forEach(function(r){for(var d=r.start;d<=r.end;d=add(d,1))runSet[K(d)]=1;});
   var days=rangeDays(),t=today();
@@ -449,8 +455,8 @@ function renderPlan(runs){
       if(e){
         e.forEach(function(tp,si){
           if(tp==="E")return;
-          var click=(tp==="C"||tp==="L")&&d>=t;
-          pills+=pill(tp,SLOTS[si],click?"click":"",click?"data-lv='"+k+"|"+si+"' title='"+(tp==="L"?"Leave – tap to cancel":"Clinical – tap to book leave")+"'":"title='"+TYPE_NAME[tp]+"'");
+          var click=(tp==="C"||tp==="L")&&d>=t&&si!==2;
+          pills+=pill(tp,SLOTS[si],click?"click":"",click?"data-lv='"+k+"|"+si+"' title='"+(tp==="L"?"Leave – tap to cancel":"Clinical – tap to book leave")+"'":"title='"+(si===2&&(tp==="C"||tp==="L")?"Evening – covered when the day is on leave; doesn't count against your allowance":TYPE_NAME[tp])+"'");
         });
       }
       var wo=S.workouts[k],tmpl=woTemplate(d);
@@ -513,7 +519,7 @@ function leaveEntries(from,to){
   });
   return Object.keys(byDay).sort().map(function(k){
     var d=P(k),sl=byDay[k].sort(),s=sessionsFor(d);
-    var clin=s.filter(function(t){return t==="C";}).length;
+    var clin=s.filter(function(t,i){return t==="C"&&i!==2;}).length;
     var names=sl.map(function(i){return SLOTS[i];}).join(", ");
     var full=sl.length===clin&&clin>1;
     return {d:d,n:sl.length,full:full,label:(full?"Full day ("+names+")":names)};
@@ -554,7 +560,7 @@ function renderPattern(){
   for(var w=0;w<8;w++){
     h+="<div class='pw'>Wk "+(w+1)+"</div>";
     for(var wd=0;wd<5;wd++){
-      var s=S.pattern[w][wd],c=s.filter(function(t){return t==="C";}).length,fx=s.indexOf("F")>=0;
+      var s=S.pattern[w][wd],c=s.filter(function(t,i){return t==="C"&&i!==2;}).length,fx=s.indexOf("F")>=0;
       h+="<div class='pc'>";
       s.forEach(function(t,si){h+="<div class='row'><span class='lbl'>"+SLOTS[si]+"</span>"+pill(t,t==="E"?"–":TYPE_NAME[t],"click","data-pat='"+w+"-"+wd+"-"+si+"'")+"</div>";});
       h+="<div class='cost'>"+(fx?"🔒 fixed":(c?c+" session"+(c>1?"s":"")+" to take":"free"))+"</div></div>";
@@ -613,7 +619,7 @@ function openDay(k){
   var h="<h3>"+fmt(d)+" "+d.getFullYear()+"</h3><div class='meta'>Rota Week "+(rotaWeek(d)+1)+(isBH(d)?" · "+esc(BH[k]):"")+(b?" · "+esc(b.label):"")+"</div>";
   if(e){
     h+="<div class='sess'>"+e.map(function(t,i){return t==="E"?"":pill(t,SLOTS[i]+" · "+(t==="L"?"Leave":TYPE_NAME[t]));}).join("")+"</div>";
-    var clin=isBH(d)?[]:s.map(function(t,i){return t==="C"?i:-1;}).filter(function(i){return i>=0;});
+    var clin=isBH(d)?[]:s.map(function(t,i){return t==="C"&&i!==2?i:-1;}).filter(function(i){return i>=0;});
     if(clin.length){
       var all=clin.every(function(i){return isLeave(d,i);});
       h+="<div class='acts' style='justify-content:flex-start;margin:0 0 12px'><button class='btn sm "+(all?"":"pri")+"' id='dl-all'>"+(all?"Cancel leave for this day":"Book whole day ("+clin.length+" session"+(clin.length>1?"s":"")+")")+"</button></div>";
@@ -625,7 +631,7 @@ function openDay(k){
   dlg.innerHTML=h;scrim.classList.add("on");
   var all=document.getElementById("dl-all");
   if(all)all.onclick=function(){
-    var clin=s.map(function(t,i){return t==="C"?i:-1;}).filter(function(i){return i>=0;});
+    var clin=s.map(function(t,i){return t==="C"&&i!==2?i:-1;}).filter(function(i){return i>=0;});
     var on=clin.every(function(i){return isLeave(d,i);});
     clin.forEach(function(i){if(on)delete S.leave[lk(d,i)];else S.leave[lk(d,i)]=1;});
     changed();openDay(k);
@@ -649,7 +655,7 @@ function bind(){
   qa("[data-day]").forEach(function(el){el.onclick=function(){openDay(el.dataset.day);};});
   qa("[data-book]").forEach(function(el){el.onclick=function(){
     var d=P(el.dataset.book),s=sessionsFor(d);
-    s.forEach(function(t,i){if(t==="C")S.leave[lk(d,i)]=1;});changed();
+    s.forEach(function(t,i){if(t==="C"&&i!==2)S.leave[lk(d,i)]=1;});changed();
   };});
   qa("[data-pat]").forEach(function(el){el.onclick=function(){
     var p=el.dataset.pat.split("-").map(Number),cur=S.pattern[p[0]][p[1]][p[2]];
