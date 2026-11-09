@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2f6fb3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Leave">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Leave Planner</title>
+<style id="app-css">
+:root{
+  --ink:#1b1f24;--muted:#5d6670;--faint:#8b939c;--line:#e3e6ea;--page:#f6f7f9;--card:#fff;
+  --clin:#2f6fb3;--clin-bg:#e6effa;--res:#2e8a5c;--res-bg:#e4f4ea;--off:#9aa3ad;--off-bg:#f0f2f4;
+  --fix:#3b3f45;--fix-bg:#dfe2e6;--leave:#d9622b;--leave-bg:#fde9df;--run:#fff6d6;--run-line:#e8c84a;
+  --block:#ece6f7;--block-ink:#6a4fa3;--na:#fbe4e4;--na-ink:#b03a3a;--oc:#b03a3a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select{font:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin-bottom:16px}
+h1{font-size:22px;margin:0;font-weight:650;letter-spacing:-.2px}
+.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.save{margin-left:auto;font-size:12px;color:var(--muted)}
+.save.dirty{color:var(--leave)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:9px 14px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-color:var(--clin);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.stat .n{font-size:24px;font-weight:650;font-variant-numeric:tabular-nums}
+.stat .l{font-size:12px;color:var(--muted)}
+.stat.warn .n{color:var(--na-ink)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.panel h2{font-size:15px;margin:0 0 4px}
+.panel p.hint{margin:0 0 12px;color:var(--muted);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-bottom:12px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+/* session pills */
+.s{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:20px;padding:0 5px;border-radius:5px;font-size:11px;font-weight:600;border:1px solid transparent;cursor:default;user-select:none}
+.s.C{background:var(--clin-bg);color:var(--clin);border-color:#c6d9f0}
+.s.R{background:var(--res-bg);color:var(--res)}
+.s.O{background:var(--off-bg);color:var(--off)}
+.s.F{background:var(--fix-bg);color:var(--fix)}
+.s.L{background:var(--leave);color:#fff}
+.s.E{background:transparent;color:var(--faint);border:1px dashed var(--line)}
+.s.click{cursor:pointer}
+.s.click:hover{outline:2px solid var(--clin);outline-offset:1px}
+/* calendar */
+.cal{display:grid;grid-template-columns:92px repeat(7,minmax(92px,1fr));gap:4px;min-width:760px}
+.calwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ch{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:2px 4px}
+.wl{font-size:12px;padding:6px 4px;color:var(--muted);line-height:1.25}
+.wl b{color:var(--ink);display:block;font-size:13px}
+.wl.now b{color:var(--clin)}
+.d{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 6px;min-height:78px;position:relative}
+.d.we{background:#fafbfc}
+.d.past{opacity:.45}
+.d.run{background:var(--run);border-color:var(--run-line)}
+.d.blk{background:var(--block)}
+.d.na{background:var(--na)}
+.d.today{box-shadow:inset 0 0 0 2px var(--clin)}
+.d .top{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:4px}
+.d .dt{font-weight:600;cursor:pointer;border-radius:4px;padding:0 3px;margin-left:-3px}
+.d .dt:hover{background:var(--off-bg)}
+.d .pills{display:flex;flex-wrap:wrap;gap:3px}
+.d .tag{font-size:10px;color:var(--block-ink);font-weight:600;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d.na .tag{color:var(--na-ink)}
+.d .oc{font-size:10px;font-weight:700;color:#fff;background:var(--oc);border-radius:4px;padding:0 4px}
+.d .wo{font-size:11px;color:var(--res);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d .wo{cursor:pointer;border-radius:4px;padding:1px 4px;margin-left:-4px}
+.d .wo:hover{background:var(--res-bg)}
+.d .wo.slot{color:var(--res);background:#f1f9f4;border:1px dashed #9fd2b4;margin-left:0;font-weight:600}
+.d .wo.add{color:transparent}
+.d:hover .wo.add{color:var(--faint)}
+@media (hover:none){.d .wo.add{color:#c3c8ce}}
+.mh{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;font-size:16px;font-weight:650;padding:22px 2px 6px;border-bottom:2px solid var(--ink);margin-bottom:4px;cursor:pointer;user-select:none}
+.mh.firstm{padding-top:4px}
+.mh .car{font-size:12px;color:var(--muted);width:12px}
+.mh .ms{font-size:12px;font-weight:500;color:var(--muted)}
+.d.om{opacity:.5;background:repeating-linear-gradient(135deg,#fff,#fff 6px,#f4f5f7 6px,#f4f5f7 12px)}
+.d.m1{box-shadow:inset 3px 0 0 var(--ink)}
+.d.m1.today{box-shadow:inset 3px 0 0 var(--ink),inset 0 0 0 2px var(--clin)}
+.d .warn{position:absolute;right:4px;bottom:3px;font-size:11px;color:var(--na-ink);font-weight:700}
+/* pattern grid */
+.pat{display:grid;grid-template-columns:70px repeat(5,1fr);gap:4px;min-width:560px}
+.pat .ph{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:2px 4px}
+.pat .pw{font-size:13px;font-weight:600;padding:6px 4px}
+.pat .pc{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px;display:flex;flex-direction:column;gap:4px}
+.pat .row{display:flex;gap:3px;align-items:center}
+.pat .lbl{font-size:10px;color:var(--faint);width:26px}
+.pat .cost{font-size:11px;color:var(--muted);margin-top:2px}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:12px;font-size:13px}
+.ctl label{display:inline-flex;align-items:center;gap:6px}
+.ctl input[type=date],.ctl input[type=number],.ctl input[type=text]{padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.btn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--clin)}
+.btn.pri{background:var(--clin);color:#fff;border-color:var(--clin)}
+.btn.sm{padding:3px 9px;font-size:12px}
+.btn.dan{color:var(--na-ink)}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.t td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.t tr:last-child td{border-bottom:0}
+.star{color:#c98a00}
+.bar{display:inline-block;height:8px;border-radius:4px;background:var(--res);vertical-align:middle}
+.pill-day{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--off-bg)}
+.pill-day.pref{background:#fff1c7;color:#7a5600}
+.empty{color:var(--faint);font-size:13px;padding:8px 0}
+/* dialog */
+.scrim{position:fixed;inset:0;background:rgba(20,24,30,.35);display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.scrim.on{display:flex}
+.dlg{background:#fff;border-radius:14px;max-width:420px;width:100%;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.dlg h3{margin:0 0 2px;font-size:16px}
+.dlg .meta{color:var(--muted);font-size:12px;margin-bottom:14px}
+.dlg .field{margin-bottom:12px}
+.dlg .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.dlg textarea,.dlg input[type=text]{width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:inherit;resize:vertical}
+.dlg .acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:6px}
+.dlg .sess{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.banner{background:#fff4e5;border:1px solid #f3d3a6;color:#7a4b06;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:14px;display:none}
+.banner.on{display:block}
+@media (max-width:640px){
+  h1{font-size:19px}
+  .wrap{padding:14px 10px 50px}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<div class="scrim" id="scrim"><div class="dlg" id="dlg"></div></div>
+<script id="app-state" type="application/json">{"v":1,"anchor":"2026-11-16","endDate":"2027-08-03","allowance":13,"researchFree":true,"pattern":null,"leave":{},"onCall":{},"workouts":{},"blocks":[{"id":"b1","label":"Feb half-term","start":"2027-02-15","end":"2027-02-19","kind":"booked"},{"id":"b2","label":"Easter – Club La Santa","start":"","end":"","kind":"booked"},{"id":"b3","label":"May half-term (pool full)","start":"2027-05-31","end":"2027-06-04","kind":"unavailable"}],"woTemplate":{}}</script>
+<script id="app-js">
+(function(){
+"use strict";
+var SLOTS=["AM","PM","EVE"];
+var DOW=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+var FULLMON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var collapsed={};
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var PREF={0:1,3:1,4:1}; // Mon, Thu, Fri
+var TYPE_NAME={C:"Clinical",R:"Research",O:"Free",F:"Fixed",E:"None"};
+var CYCLE=["C","R","O","F","E"];
+
+// Default 8-week pattern from the Bear note (weeks 5–8 repeat 1–4, except Wk4 Fri AM off)
+function defaultPattern(){
+  var b=[
+    [["C","C","C"],["C","R","E"],["C","R","E"],["R","R","E"],["F","O","E"]],
+    [["R","R","E"],["R","C","E"],["C","C","C"],["C","C","E"],["F","O","E"]],
+    [["O","O","E"],["C","R","E"],["R","R","E"],["C","C","E"],["C","C","E"]],
+    [["C","C","E"],["R","R","E"],["C","C","E"],["O","O","E"],["C","C","E"]]
+  ];
+  var p=[];
+  for(var w=0;w<8;w++){p.push(JSON.parse(JSON.stringify(b[w%4])));}
+  p[3][4]=["O","C","E"]; // Week 4 Friday AM off (not Week 8)
+  return p;
+}
+var DEFAULT_WO=[
+  ["","Workout","","Workout","Workout","Workout","Workout"],
+  ["Workout","Workout","","","Workout","Workout","Workout"],
+  ["Workout","PM workout","Workout","","","Workout","Workout"],
+  ["","Workout","","Workout","","Workout","Workout"]
+];
+
+var S=JSON.parse(document.getElementById("app-state").textContent);
+if(!S.pattern)S.pattern=defaultPattern();
+var view="plan", editMirror=true, art=null, dirty=false, saveTimer=null, canSave=true, lsMode=false;
+
+// ---------- dates ----------
+function P(s){var a=s.split("-");return new Date(+a[0],+a[1]-1,+a[2]);}
+function K(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function add(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function dow(d){return (d.getDay()+6)%7;}
+function monday(d){return add(d,-dow(d));}
+function fmt(d){return DOW[dow(d)]+" "+d.getDate()+" "+MON[d.getMonth()];}
+function fmtS(d){return d.getDate()+" "+MON[d.getMonth()];}
+function today(){var t=new Date();t.setHours(0,0,0,0);return t;}
+function rotaWeek(d){var w=Math.round((monday(d)-P(S.anchor))/(7*864e5));return ((w%8)+8)%8;} // 0..7
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+// ---------- model ----------
+function sessionsFor(d){
+  var wd=dow(d); if(wd>4)return null;
+  return S.pattern[rotaWeek(d)][wd];
+}
+function blockFor(d){
+  var k=K(d);
+  for(var i=0;i<S.blocks.length;i++){var b=S.blocks[i];if(b.start&&b.end&&k>=b.start&&k<=b.end)return b;}
+  return null;
+}
+function lk(d,i){return K(d)+"|"+i;}
+function isLeave(d,i){return !!S.leave[lk(d,i)];}
+// effective type per slot after leave
+function eff(d){
+  var s=sessionsFor(d); if(!s)return null;
+  return s.map(function(t,i){return (t==="C"&&isLeave(d,i))?"L":t;});
+}
+function isFreeDay(d){
+  var k=K(d);
+  if(S.onCall[k])return false;
+  var b=blockFor(d);
+  if(b&&b.kind==="booked")return true;
+  var e=eff(d); if(!e)return true; // weekend
+  for(var i=0;i<e.length;i++){
+    var t=e[i];
+    if(t==="C"||t==="F")return false;
+    if(t==="R"&&!S.researchFree)return false;
+  }
+  return true;
+}
+function leaveCount(){
+  var n=0,end=S.endDate;
+  Object.keys(S.leave).forEach(function(k){if(S.leave[k]&&k.split("|")[0]<=end)n++;});
+  return n;
+}
+function cleanLeave(){ // remove leave on slots that are no longer clinical
+  Object.keys(S.leave).forEach(function(k){
+    var p=k.split("|"),d=P(p[0]),s=sessionsFor(d);
+    if(!s||s[+p[1]]!=="C")delete S.leave[k];
+  });
+}
+function rangeDays(){
+  var out=[],d=monday(today()),end=add(monday(P(S.endDate)),6);
+  for(;d<=end;d=add(d,1))out.push(d);
+  return out;
+}
+// Runs of free days that contain at least one leave session
+function computeRuns(){
+  var days=rangeDays(),runs=[],cur=null;
+  // extend scan a little either side so runs aren't cut artificially
+  days.forEach(function(d){
+    if(isFreeDay(d)){
+      if(!cur)cur={start:d,end:d,leave:0,days:0,pref:0};
+      cur.end=d;cur.days++;
+      var e=eff(d);
+      if(e){var l=e.filter(function(t){return t==="L";}).length;cur.leave+=l;if(l&&PREF[dow(d)])cur.pref++;}
+    }else{if(cur)runs.push(cur);cur=null;}
+  });
+  if(cur)runs.push(cur);
+  return runs;
+}
+// Quick wins from the 8-week pattern: cost to clear one day vs run it creates
+function quickWins(){
+  var res=[];
+  for(var w=0;w<8;w++)for(var wd=0;wd<5;wd++){
+    var s=S.pattern[w][wd];
+    if(s.indexOf("F")>=0)continue;
+    var cost=s.filter(function(t){return t==="C";}).length;
+    if(!cost)continue;
+    // run length using pattern only (no leave), with this day cleared
+    var idx=w*7+wd,len=1;
+    function free(i){
+      var ww=((Math.floor(i/7))%8+8)%8,dd=((i%7)+7)%7;
+      if(dd>4)return true;
+      var x=S.pattern[ww][dd];
+      for(var j=0;j<x.length;j++){var t=x[j];if(t==="C"||t==="F")return false;if(t==="R"&&!S.researchFree)return false;}
+      return true;
+    }
+    var i=idx-1,back=0;while(back<14&&free(i)){len++;i--;back++;}
+    i=idx+1;var fwd=0;while(fwd<14&&free(i)){len++;i++;fwd++;}
+    res.push({w:w,wd:wd,cost:cost,len:len,score:len/cost,pref:!!PREF[wd],startOff:back,endOff:fwd});
+  }
+  res.sort(function(a,b){
+    return (b.score*(b.pref?1.5:1))-(a.score*(a.pref?1.5:1))||a.cost-b.cost||b.len-a.len;
+  });
+  return res;
+}
+function nextDateFor(w,wd){
+  var end=P(S.endDate);
+  for(var i=0;i<60;i++){
+    var m=add(monday(today()),7*i),day=add(m,wd);
+    if(day>end)return null;
+    if(day<=today())continue;
+    if(rotaWeek(m)!==w)continue;
+    var b=blockFor(day);if(b)continue;
+    var s=sessionsFor(day);
+    var already=s.every(function(t,j){return t!=="C"||isLeave(day,j);});
+    if(already)continue;
+    return day;
+  }
+  return null;
+}
+
+// ---------- persistence ----------
+function snapshot(){return JSON.stringify(S).replace(/</g,"\\u003c");}
+function buildDoc(){
+  var css=document.getElementById("app-css").textContent;
+  var js=document.getElementById("app-js").textContent;
+  return "<!DOCTYPE html>\n<html lang=\"en-GB\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Leave Planner</title>\n<style id=\"app-css\">"+css+"</style>\n</head>\n<body>\n<div class=\"wrap\" id=\"root\"></div>\n<div class=\"scrim\" id=\"scrim\"><div class=\"dlg\" id=\"dlg\"></div></div>\n<script id=\"app-state\" type=\"application/json\">"+snapshot()+"<\/script>\n<script id=\"app-js\">"+js+"<\/script>\n</body>\n</html>\n";
+}
+function changed(){
+  cleanLeave();
+  dirty=true;
+  if(lsMode){try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}dirty=false;}
+  render();
+  if(art&&canSave){clearTimeout(saveTimer);saveTimer=setTimeout(save,2500);}
+}
+function save(){
+  if(!art||!dirty)return;
+  try{sessionStorage.setItem("lp-ui",JSON.stringify({y:window.scrollY,view:view}));}catch(e){}
+  setSaveText("Saving…");
+  art.publish(buildDoc()).then(function(){dirty=false;setSaveText("Saved");}).catch(function(err){
+    var c=(err&&(err.code||err.name||err.message))||"";
+    if(/not_granted|not_writer/.test(c)){canSave=false;setSaveText("Read-only view");}
+    else if(/conflict/.test(c)){setSaveText("Updated elsewhere – reloading");}
+    else setSaveText("Couldn't save – will retry");
+    if(canSave&&!/conflict/.test(c)){clearTimeout(saveTimer);saveTimer=setTimeout(save,6000);}
+  });
+}
+function setSaveText(t){var el=document.getElementById("savetxt");if(el){el.textContent=t;el.className="save"+(dirty?" dirty":"");}}
+
+// ---------- render ----------
+var root=document.getElementById("root");
+function render(){
+  var used=leaveCount(),left=S.allowance-used;
+  var runs=computeRuns().filter(function(r){return r.leave>0;});
+  var longest=runs.reduce(function(m,r){return Math.max(m,r.days);},0);
+  var h="";
+  h+="<header><div><h1>Leave Planner</h1><div class='sub'>8-week rota · Week 1 = w/c "+esc(fmtS(P(S.anchor)))+" "+P(S.anchor).getFullYear()+" · this week is <b>Week "+(rotaWeek(today())+1)+"</b></div></div><div class='save' id='savetxt'>"+(lsMode?"Saved in this browser only":(dirty?"Unsaved changes":"All changes saved"))+"</div></header>";
+  h+="<div class='banner"+(lsMode?" on":"")+"'>Changes are saved on this device. To move them to another device, use Settings → Backup.</div>";
+  h+="<div class='tabs'>"+[["plan","Calendar"],["wins","Quick wins"],["pattern","Job plan"],["settings","Settings"]].map(function(t){return "<button data-tab='"+t[0]+"' class='"+(view===t[0]?"on":"")+"'>"+t[1]+"</button>";}).join("")+"</div>";
+  h+="<div class='stats'>"+
+    stat(used+" / "+S.allowance,"Sessions booked",left<0)+
+    stat(left,"Sessions left to "+fmtS(P(S.endDate)),left<0)+
+    stat(runs.length,"Breaks created")+
+    stat(longest?longest+" days":"–","Longest break")+
+  "</div>";
+  if(view==="plan")h+=renderPlan(runs);
+  if(view==="wins")h+=renderWins();
+  if(view==="pattern")h+=renderPattern();
+  if(view==="settings")h+=renderSettings();
+  root.innerHTML=h;
+  bind();
+}
+function monthSummary(md){
+  var y=md.getFullYear(),mo=md.getMonth(),l=0,w=0,days=0;
+  Object.keys(S.leave).forEach(function(k){var d=P(k.split("|")[0]);if(d.getFullYear()===y&&d.getMonth()===mo)l++;});
+  Object.keys(S.workouts).forEach(function(k){var d=P(k);if(d.getFullYear()===y&&d.getMonth()===mo)w++;});
+  var parts=[];
+  if(l)parts.push(l+" leave session"+(l>1?"s":""));
+  if(w)parts.push(w+" workout"+(w>1?"s":"")+" planned");
+  return parts.length?" · "+parts.join(" · "):"";
+}
+function stat(n,l,warn){return "<div class='stat"+(warn?" warn":"")+"'><div class='n'>"+n+"</div><div class='l'>"+l+"</div></div>";}
+function pill(t,label,cls,attrs){return "<span class='s "+t+(cls?" "+cls:"")+"' "+(attrs||"")+">"+label+"</span>";}
+
+function renderPlan(runs){
+  var h="<div class='panel'><h2>Calendar</h2><p class='hint'>Tap a blue clinical session to book it as leave (orange); tap again to cancel. Tap a date to book the whole day, mark on-call or plan a workout. Yellow shading shows each break you've created. Tap a month name to fold it away.</p>";
+  h+=legend();
+  var runSet={};runs.forEach(function(r){for(var d=r.start;d<=r.end;d=add(d,1))runSet[K(d)]=1;});
+  var days=rangeDays(),t=today();
+  h+="<div class='calwrap'><div class='cal'><div></div>"+DOW.map(function(x,i){return "<div class='ch'>"+x+(PREF[i]?" <span class='star'>★</span>":"")+"</div>";}).join("");
+  var curMonth=null;
+  for(var i=0;i<days.length;i+=7){
+    var m=days[i],rw=rotaWeek(m)+1,isNow=monday(t).getTime()===m.getTime();
+    // month header: first week shown, or the week containing the 1st
+    var first=null;for(var f=0;f<7;f++){if(days[i+f].getDate()===1){first=days[i+f];break;}}
+    if(i===0||first){
+      var md=first||m;curMonth=md.getFullYear()+"-"+md.getMonth();
+      var sm=monthSummary(md);
+      h+="<div class='mh"+(i===0?" firstm":"")+"' data-mon='"+curMonth+"'><span class='car'>"+(collapsed[curMonth]?"▸":"▾")+"</span>"+FULLMON[md.getMonth()]+" "+md.getFullYear()+"<span class='ms'>"+sm+"</span></div>";
+    }
+    if(collapsed[curMonth])continue;
+    h+="<div class='wl"+(isNow?" now":"")+"'><b>Wk "+rw+"</b>"+fmtS(m)+"</div>";
+    for(var j=0;j<7;j++){
+      var d=days[i+j],k=K(d),e=eff(d),b=blockFor(d),cls="d";
+      if(j>4)cls+=" we";
+      if(d<t)cls+=" past";
+      if(b)cls+=(b.kind==="booked"?" blk":" na");
+      if(runSet[k]&&!b)cls+=" run";
+      if(d.getTime()===t.getTime())cls+=" today";
+      if(first&&d<first)cls+=" om";
+      if(d.getDate()===1)cls+=" m1";
+      var pills="";
+      if(e){
+        e.forEach(function(tp,si){
+          if(tp==="E")return;
+          var click=(tp==="C"||tp==="L")&&d>=t;
+          pills+=pill(tp,SLOTS[si],click?"click":"",click?"data-lv='"+k+"|"+si+"' title='"+(tp==="L"?"Leave – tap to cancel":"Clinical – tap to book leave")+"'":"title='"+TYPE_NAME[tp]+"'");
+        });
+      }
+      var wo=S.workouts[k],tmpl=woTemplate(d);
+      var warn=(b&&b.kind==="unavailable"&&e&&e.indexOf("L")>=0)||(S.onCall[k]&&e&&e.indexOf("L")>=0);
+      var woHtml=wo?"<div class='wo' data-day='"+k+"'>🏋 "+esc(wo)+"</div>":
+        (tmpl?"<div class='wo slot' data-day='"+k+"' title='Planned workout slot – tap to plan'>◦ "+esc(tmpl)+"</div>":
+        "<div class='wo add' data-day='"+k+"'>+ workout</div>");
+      h+="<div class='"+cls+"'><div class='top'><span class='dt' data-day='"+k+"'>"+d.getDate()+(d.getDate()===1||i+j===0?" "+MON[d.getMonth()]:"")+"</span>"+(S.onCall[k]?"<span class='oc'>ON CALL</span>":"")+"</div><div class='pills'>"+pills+"</div>"+
+        (b?"<div class='tag'>"+esc(b.label)+"</div>":"")+woHtml+
+        (warn?"<span class='warn' title='Clash'>!</span>":"")+
+      "</div>";
+    }
+  }
+  h+="</div></div></div>";
+  // breaks list
+  h+="<div class='panel'><h2>Your breaks</h2><p class='hint'>Every run of free days that includes leave you've booked"+(S.researchFree?" (research counts as free time)":"")+".</p>";
+  if(!runs.length)h+="<div class='empty'>No leave booked yet. Try the Quick wins tab.</div>";
+  else{
+    h+="<table class='t'><tr><th>From</th><th>To</th><th>Days off</th><th>Sessions</th><th>Days per session</th></tr>";
+    runs.forEach(function(r){h+="<tr><td>"+fmt(r.start)+"</td><td>"+fmt(r.end)+"</td><td><b>"+r.days+"</b></td><td>"+r.leave+"</td><td>"+(r.days/r.leave).toFixed(1)+"</td></tr>";});
+    h+="</table>";
+  }
+  h+="</div>";
+  return h;
+}
+function legend(){
+  return "<div class='legend'><span><i class='sw' style='background:var(--clin-bg);border:1px solid #c6d9f0'></i>Clinical</span><span><i class='sw' style='background:var(--leave)'></i>Leave</span><span><i class='sw' style='background:var(--res-bg)'></i>Research</span><span><i class='sw' style='background:var(--off-bg)'></i>Free / off</span><span><i class='sw' style='background:var(--fix-bg)'></i>Fixed (ECT / private)</span><span><i class='sw' style='background:var(--run);border:1px solid var(--run-line)'></i>Break</span><span><i class='sw' style='background:var(--block)'></i>Already booked</span><span><i class='sw' style='background:var(--na)'></i>Leave unavailable</span><span><span class='star'>★</span> Preferred day</span><span><i class='sw' style='background:#f1f9f4;border:1px dashed #9fd2b4'></i>Workout slot</span></div>";
+}
+function woTemplate(d){
+  var w=rotaWeek(d)%4,wd=dow(d);
+  var key=w+"-"+wd;
+  if(S.woTemplate&&S.woTemplate[key]!=null)return S.woTemplate[key];
+  return DEFAULT_WO[w][wd];
+}
+
+function renderWins(){
+  var wins=quickWins();
+  var h="<div class='panel'><h2>Quick wins</h2><p class='hint'>Each clinical day in your 8-week cycle, ranked by how many days off it gives you per session, with Mon, Thu and Fri ranked higher. \"Book next\" books the next one that hasn't already been taken.</p>";
+  h+="<table class='t'><tr><th>Rota day</th><th>Sessions</th><th>Break it creates</th><th></th><th>Next date</th><th></th></tr>";
+  var maxLen=wins.reduce(function(m,x){return Math.max(m,x.len);},1);
+  wins.forEach(function(x,i){
+    var nd=nextDateFor(x.w,x.wd);
+    var span="";
+    if(nd){var a=add(nd,-x.startOff),b=add(nd,x.endOff);span=fmt(a)+" → "+fmt(b);}
+    h+="<tr><td><span class='pill-day"+(x.pref?" pref":"")+"'>Wk "+(x.w+1)+" "+DOW[x.wd]+"</span></td><td>"+x.cost+"</td><td><b>"+x.len+" days</b> <span style='color:var(--muted);font-size:12px'>("+(x.len/x.cost).toFixed(1)+" per session)</span></td><td><span class='bar' style='width:"+Math.round(60*x.len/maxLen)+"px'></span></td><td style='font-size:12px'>"+(nd?span:"<span style='color:var(--faint)'>none left</span>")+"</td><td>"+(nd?"<button class='btn sm' data-book='"+K(nd)+"'>Book next</button>":"")+"</td></tr>";
+  });
+  h+="</table><div class='note'>Break length is worked out from your job plan alone, before any other leave or on-call. When the same rota day comes up in two weeks of the 8-week cycle (e.g. Wk 4 and Wk 8 Fri), each week is listed separately.</div></div>";
+  return h;
+}
+
+function renderPattern(){
+  var h="<div class='panel'><h2>Job plan · 8-week cycle</h2><p class='hint'>Tap a session to change its type (clinical → research → free → fixed → none). Any booked leave on a session that stops being clinical is removed.</p>";
+  h+="<div class='ctl'><label><input type='checkbox' id='mirror' "+(editMirror?"checked":"")+"> Copy changes to the matching week (1↔5, 2↔6, 3↔7, 4↔8)</label><button class='btn sm' id='resetpat'>Reset to Bear note</button></div>";
+  h+=legend();
+  h+="<div class='calwrap'><div class='pat'><div></div>"+DOW.slice(0,5).map(function(x,i){return "<div class='ph'>"+x+(PREF[i]?" <span class='star'>★</span>":"")+"</div>";}).join("");
+  for(var w=0;w<8;w++){
+    h+="<div class='pw'>Wk "+(w+1)+"</div>";
+    for(var wd=0;wd<5;wd++){
+      var s=S.pattern[w][wd],c=s.filter(function(t){return t==="C";}).length,fx=s.indexOf("F")>=0;
+      h+="<div class='pc'>";
+      s.forEach(function(t,si){h+="<div class='row'><span class='lbl'>"+SLOTS[si]+"</span>"+pill(t,t==="E"?"–":TYPE_NAME[t],"click","data-pat='"+w+"-"+wd+"-"+si+"'")+"</div>";});
+      h+="<div class='cost'>"+(fx?"🔒 fixed":(c?c+" session"+(c>1?"s":"")+" to take":"free"))+"</div></div>";
+    }
+  }
+  h+="</div></div></div>";
+  // workout template
+  h+="<div class='panel'><h2>Workout template</h2><p class='hint'>The default workout slot for each day of Weeks 1–4 (from the Fitness row of your Bear note). It shows in grey on the calendar until you plan that day's session.</p><div class='calwrap'><div class='pat' style='grid-template-columns:70px repeat(7,1fr);min-width:720px'><div></div>"+DOW.map(function(x){return "<div class='ph'>"+x+"</div>";}).join("");
+  for(var w2=0;w2<4;w2++){
+    h+="<div class='pw'>Wk "+(w2+1)+"/"+(w2+5)+"</div>";
+    for(var d2=0;d2<7;d2++){
+      var key=w2+"-"+d2,val=(S.woTemplate&&S.woTemplate[key]!=null)?S.woTemplate[key]:DEFAULT_WO[w2][d2];
+      h+="<div class='pc'><input type='text' data-wot='"+key+"' value='"+esc(val)+"' placeholder='–' style='width:100%;border:1px solid var(--line);border-radius:5px;padding:3px 5px;font-size:12px'></div>";
+    }
+  }
+  h+="</div></div></div>";
+  return h;
+}
+
+function renderSettings(){
+  var h="<div class='panel'><h2>Settings</h2>";
+  h+="<div class='ctl'><label>Week 1 starts (Monday) <input type='date' id='anchor' value='"+S.anchor+"'></label><label>Leave sessions <input type='number' id='allow' min='0' max='99' value='"+S.allowance+"' style='width:70px'></label><label>Use by <input type='date' id='endd' value='"+S.endDate+"'></label></div>";
+  h+="<div class='ctl'><label><input type='checkbox' id='resfree' "+(S.researchFree?"checked":"")+"> Count research time as free when working out breaks</label></div></div>";
+  h+="<div class='panel'><h2>Already booked or unavailable</h2><p class='hint'>Booked periods count as time off; unavailable periods (e.g. the leave pool is full) flag any leave you book in them.</p><table class='t'><tr><th>Label</th><th>From</th><th>To</th><th>Type</th><th></th></tr>";
+  S.blocks.forEach(function(b){
+    h+="<tr><td><input type='text' data-bl='"+b.id+"' data-f='label' value='"+esc(b.label)+"' style='width:100%;border:1px solid var(--line);border-radius:6px;padding:4px 7px'></td><td><input type='date' data-bl='"+b.id+"' data-f='start' value='"+esc(b.start)+"'></td><td><input type='date' data-bl='"+b.id+"' data-f='end' value='"+esc(b.end)+"'></td><td><select data-bl='"+b.id+"' data-f='kind'><option value='booked'"+(b.kind==="booked"?" selected":"")+">Booked</option><option value='unavailable'"+(b.kind==="unavailable"?" selected":"")+">Unavailable</option></select></td><td><button class='btn sm dan' data-delbl='"+b.id+"'>Remove</button></td></tr>";
+  });
+  h+="</table><div style='margin-top:10px'><button class='btn sm' id='addbl'>+ Add period</button></div><div class='note'>The half-term dates are placeholders: check them against your school's term dates, and add your Easter dates.</div></div>";
+  h+="<div class='panel'><h2>On-call (1:24)</h2><p class='hint'>On-call no longer falls on a set rota day, so mark each one from the calendar (tap the date). On-call days don't count as free, and leave booked on one is flagged.</p>";
+  var oc=Object.keys(S.onCall).filter(function(k){return S.onCall[k];}).sort();
+  h+=oc.length?oc.map(function(k){return "<span class='pill-day' style='margin:0 6px 6px 0'>"+fmt(P(k))+" <a href='#' data-unoc='"+k+"' style='color:var(--na-ink);text-decoration:none'>×</a></span>";}).join(""):"<div class='empty'>None marked yet.</div>";
+  h+="</div><div class='panel'><h2>Backup</h2><p class='hint'>Copy everything (job plan, leave, on-call, workouts) as a code, then paste it into the planner on another device or browser and tap Restore.</p><div class='ctl'><button class='btn sm' id='bk-copy'>Copy backup code</button><span id='bk-msg' style='font-size:12px;color:var(--muted)'></span></div><textarea id='bk-in' rows='3' placeholder='Paste a backup code here' style='width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:12px ui-monospace,monospace'></textarea><div style='margin-top:8px'><button class='btn sm' id='bk-restore'>Restore</button></div>";
+  h+="</div><div class='panel'><h2>Reset</h2><button class='btn sm dan' id='clearleave'>Clear all booked leave</button></div>";
+  return h;
+}
+
+// ---------- day dialog ----------
+var scrim=document.getElementById("scrim"),dlg=document.getElementById("dlg");
+function openDay(k){
+  var d=P(k),s=sessionsFor(d),e=eff(d),b=blockFor(d);
+  var h="<h3>"+fmt(d)+" "+d.getFullYear()+"</h3><div class='meta'>Rota Week "+(rotaWeek(d)+1)+(b?" · "+esc(b.label):"")+"</div>";
+  if(e){
+    h+="<div class='sess'>"+e.map(function(t,i){return t==="E"?"":pill(t,SLOTS[i]+" · "+(t==="L"?"Leave":TYPE_NAME[t]));}).join("")+"</div>";
+    var clin=s.map(function(t,i){return t==="C"?i:-1;}).filter(function(i){return i>=0;});
+    if(clin.length){
+      var all=clin.every(function(i){return isLeave(d,i);});
+      h+="<div class='acts' style='justify-content:flex-start;margin:0 0 12px'><button class='btn sm "+(all?"":"pri")+"' id='dl-all'>"+(all?"Cancel leave for this day":"Book whole day ("+clin.length+" session"+(clin.length>1?"s":"")+")")+"</button></div>";
+    }
+  }
+  h+="<label class='toggle'><input type='checkbox' id='dl-oc' "+(S.onCall[k]?"checked":"")+"> On-call this day</label>";
+  h+="<div class='field'><label>Workout</label><input type='text' id='dl-wo' value='"+esc(S.workouts[k]||"")+"' placeholder='"+esc(woTemplate(d)||"e.g. 60 min turbo, Z2")+"'></div>";
+  h+="<div class='acts'><button class='btn' id='dl-close'>Done</button></div>";
+  dlg.innerHTML=h;scrim.classList.add("on");
+  var all=document.getElementById("dl-all");
+  if(all)all.onclick=function(){
+    var clin=s.map(function(t,i){return t==="C"?i:-1;}).filter(function(i){return i>=0;});
+    var on=clin.every(function(i){return isLeave(d,i);});
+    clin.forEach(function(i){if(on)delete S.leave[lk(d,i)];else S.leave[lk(d,i)]=1;});
+    changed();openDay(k);
+  };
+  document.getElementById("dl-oc").onchange=function(){if(this.checked)S.onCall[k]=1;else delete S.onCall[k];changed();};
+  function closeD(){
+    var v=document.getElementById("dl-wo").value.trim();
+    if(v!==(S.workouts[k]||"")){if(v)S.workouts[k]=v;else delete S.workouts[k];changed();}
+    scrim.classList.remove("on");
+  }
+  document.getElementById("dl-close").onclick=closeD;
+  document.getElementById("dl-wo").onkeydown=function(ev){if(ev.key==="Enter")closeD();};
+  scrim.onclick=function(ev){if(ev.target===scrim)closeD();};
+}
+
+// ---------- events ----------
+function bind(){
+  qa("[data-tab]").forEach(function(b){b.onclick=function(){view=b.dataset.tab;render();};});
+  qa("[data-lv]").forEach(function(el){el.onclick=function(){var k=el.dataset.lv;if(S.leave[k])delete S.leave[k];else S.leave[k]=1;changed();};});
+  qa("[data-mon]").forEach(function(el){el.onclick=function(){var k=el.dataset.mon;collapsed[k]=!collapsed[k];render();};});
+  qa("[data-day]").forEach(function(el){el.onclick=function(){openDay(el.dataset.day);};});
+  qa("[data-book]").forEach(function(el){el.onclick=function(){
+    var d=P(el.dataset.book),s=sessionsFor(d);
+    s.forEach(function(t,i){if(t==="C")S.leave[lk(d,i)]=1;});changed();
+  };});
+  qa("[data-pat]").forEach(function(el){el.onclick=function(){
+    var p=el.dataset.pat.split("-").map(Number),cur=S.pattern[p[0]][p[1]][p[2]];
+    var nx=CYCLE[(CYCLE.indexOf(cur)+1)%CYCLE.length];
+    S.pattern[p[0]][p[1]][p[2]]=nx;
+    if(editMirror){var o=(p[0]+4)%8;S.pattern[o][p[1]][p[2]]=nx;}
+    changed();
+  };});
+  qa("[data-wot]").forEach(function(el){el.onchange=function(){if(!S.woTemplate)S.woTemplate={};S.woTemplate[el.dataset.wot]=el.value.trim();changed();};});
+  var m=q("#mirror");if(m)m.onchange=function(){editMirror=m.checked;};
+  var rp=q("#resetpat");if(rp)rp.onclick=function(){S.pattern=defaultPattern();changed();};
+  var an=q("#anchor");if(an)an.onchange=function(){if(!an.value)return;var d=P(an.value);if(dow(d)!==0){an.value=K(monday(d));d=monday(d);}S.anchor=K(d);changed();};
+  var al=q("#allow");if(al)al.onchange=function(){S.allowance=Math.max(0,parseInt(al.value,10)||0);changed();};
+  var ed=q("#endd");if(ed)ed.onchange=function(){if(ed.value){S.endDate=ed.value;changed();}};
+  var rf=q("#resfree");if(rf)rf.onchange=function(){S.researchFree=rf.checked;changed();};
+  qa("[data-bl]").forEach(function(el){el.onchange=function(){var b=S.blocks.filter(function(x){return x.id===el.dataset.bl;})[0];if(b){b[el.dataset.f]=el.value;changed();}};});
+  qa("[data-delbl]").forEach(function(el){el.onclick=function(){S.blocks=S.blocks.filter(function(x){return x.id!==el.dataset.delbl;});changed();};});
+  var ab=q("#addbl");if(ab)ab.onclick=function(){S.blocks.push({id:"b"+Date.now(),label:"New period",start:"",end:"",kind:"booked"});changed();};
+  qa("[data-unoc]").forEach(function(el){el.onclick=function(ev){ev.preventDefault();delete S.onCall[el.dataset.unoc];changed();};});
+  var bc=q("#bk-copy");if(bc)bc.onclick=function(){
+    var code=JSON.stringify(S),msg=q("#bk-msg"),ta=q("#bk-in");
+    var done=function(){msg.textContent="Copied – paste it into the planner on your other device.";};
+    try{navigator.clipboard.writeText(code).then(done,function(){ta.value=code;ta.select();msg.textContent="Couldn't copy automatically – the code is in the box below; copy it from there.";});}
+    catch(e){ta.value=code;ta.select();msg.textContent="Couldn't copy automatically – the code is in the box below; copy it from there.";}
+  };
+  var br=q("#bk-restore");if(br)br.onclick=function(){
+    var msg=q("#bk-msg");
+    try{var o=JSON.parse(q("#bk-in").value);if(!o||!o.pattern||!o.leave)throw 0;S=o;changed();view="plan";render();}
+    catch(e){msg.textContent="That doesn't look like a valid backup code.";}
+  };
+  var cl=q("#clearleave");if(cl)cl.onclick=function(){
+    if(cl.dataset.armed){S.leave={};changed();}else{cl.dataset.armed=1;cl.textContent="Tap again to confirm";}
+  };
+}
+function q(s){return root.querySelector(s);}
+function qa(s){return Array.prototype.slice.call(root.querySelectorAll(s));}
+
+// ---------- boot ----------
+try{var ui=JSON.parse(sessionStorage.getItem("lp-ui")||"null");if(ui){view=ui.view||view;sessionStorage.removeItem("lp-ui");setTimeout(function(){window.scrollTo(0,ui.y||0);},30);}}catch(e){}
+render();
+window.addEventListener("beforeunload",function(){if(dirty&&art)save();});
+if(window.claude&&typeof window.claude.use==="function"){
+  window.claude.use("artifact").then(function(a){
+    if(a){art=a;}
+    else enableLS();
+    render();
+  }).catch(function(){enableLS();render();});
+}else{enableLS();render();}
+function enableLS(){
+  lsMode=true;
+  try{var x=localStorage.getItem("leave-planner-state");if(x){var o=JSON.parse(x);if(o&&o.pattern)S=o;}}catch(e){}
+}
+})();
+</script>
+</body>
+</html>
