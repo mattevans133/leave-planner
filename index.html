@@ -64,6 +64,9 @@ input[type=date],input[type=number],input[type=text],input[type=password],select
 .chip.L{background:var(--leave);color:#fff}
 .chip.H{background:var(--bh);color:var(--bh-ink)}
 .chip.oc{background:var(--na-ink);color:#fff}
+.chip.T{background:#fff;color:var(--leave);box-shadow:inset 0 0 0 1px #f1b597}
+.chip.A{background:#e7eefb;color:#1f4f8f;box-shadow:inset 0 0 0 1px #c3d5ef}
+.chip.P{background:#fff;color:var(--leave);box-shadow:inset 0 0 0 1.5px var(--leave);border-style:dashed}
 .chip.blk{background:var(--block);color:var(--block-ink)}
 .chip .sl{opacity:.7;font-weight:500}
 .wo{display:inline-flex;align-items:center;gap:5px;border-radius:7px;padding:3px 8px 3px 4px;font-size:12.5px;cursor:pointer;max-width:100%;border:1px solid transparent}
@@ -103,6 +106,17 @@ input[type=date],input[type=number],input[type=text],input[type=password],select
 .day .cell{display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:24px}
 .day .lbl{display:none;font-size:11px;color:var(--faint);width:100%;text-transform:uppercase;letter-spacing:.4px}
 .day .nt{grid-column:2/-1;font-size:12.5px;color:var(--muted);background:#f7f8fa;border-radius:7px;padding:5px 8px;white-space:pre-wrap}
+.glance{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.gl{background:#fff;border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:13px;display:flex;flex-direction:column;min-width:0;flex:1 1 150px}
+.gl[data-act]{cursor:pointer}.gl[data-act]:hover{border-color:#b9c3cf}
+.gl .gk{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.gl .gv{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.gl:first-child{flex:2 1 260px}
+.wfoot{display:flex;flex-wrap:wrap;gap:14px 28px}
+.wfoot .ft{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.wfoot .fn{font-size:20px;font-weight:680;font-variant-numeric:tabular-nums}
+.wfoot .fn.over{color:var(--na-ink)}
+.wfoot .fb{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
 .wkhead{display:grid;grid-template-columns:92px 1fr 1.25fr;gap:14px;padding:0 13px;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
 /* month view */
 .mgrid{display:grid;grid-template-columns:34px repeat(7,1fr);gap:4px}
@@ -118,6 +132,9 @@ input[type=date],input[type=number],input[type=text],input[type=password],select
 .mc .tp{display:flex;align-items:center;gap:4px;font-size:12.5px;font-weight:650}
 .mc .tp .x{margin-left:auto;display:flex;gap:3px;align-items:center}
 .mc .bars{display:flex;gap:2px}
+.mc .rl{font-size:10.5px;color:#1f4f8f;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mc.pastd{opacity:.6}
+.mhead{grid-column:1/-1;font-size:15px;font-weight:680;padding:18px 2px 4px;border-bottom:2px solid var(--ink);margin-bottom:2px}
 .mc .bars i{flex:1;height:7px;border-radius:2px}
 .mc .tag{font-size:10.5px;font-weight:600;color:var(--block-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mc .tag.bh{color:var(--bh-ink)}
@@ -128,7 +145,7 @@ input[type=date],input[type=number],input[type=text],input[type=password],select
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
 .dot.oc{background:var(--na-ink)}
 .dot.nt{background:var(--faint)}
-.b-C{background:var(--clin)}.b-R{background:#7cc79f}.b-O{background:#d5dae0}.b-F{background:var(--fix)}.b-L{background:var(--leave)}.b-H{background:#b9a6e3}.b-E{background:transparent}
+.b-T{background:#f1b597}.b-C{background:var(--clin)}.b-R{background:#7cc79f}.b-O{background:#d5dae0}.b-F{background:var(--fix)}.b-L{background:var(--leave)}.b-H{background:#b9a6e3}.b-E{background:transparent}
 .tg.motion{background:var(--motion)}.tg.home{background:var(--home)}.tg.dl{background:var(--dl)}.tg.other{background:var(--other)}
 /* year view */
 .yg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
@@ -144,6 +161,8 @@ input[type=date],input[type=number],input[type=text],input[type=password],select
 .yc.free{background:#f6f7f8;color:#8d959e}
 .yc.we{background:transparent;color:#aab1b9}
 .yc.lv{background:var(--leave);color:#fff;font-weight:700}
+.yc.pl{background:#fff;color:var(--leave);font-weight:700;box-shadow:inset 0 0 0 1.5px var(--leave)}
+.yc.ot{background:#fbe5d9;color:var(--leave)}
 .yc.lvp{background:linear-gradient(135deg,var(--leave) 50%,var(--clin-bg) 50%);color:#fff;font-weight:700}
 .yc.bh{background:var(--bh);color:var(--bh-ink);font-weight:600}
 .yc.blk{background:var(--block);color:var(--block-ink)}
@@ -212,7 +231,7 @@ table.t tr:last-child td{border-bottom:0}
   .day .nt{grid-column:1/-1}
   .wkhead{display:none}
   .mc{min-height:62px;padding:3px 4px;border-radius:7px}
-  .mc .tag,.mc .w1 span:last-child{display:none}
+  .mc .tag,.mc .w1 span:last-child,.mc .rl{display:none}
   .mc .ws{flex-direction:row;flex-wrap:wrap}
   .mgrid{grid-template-columns:22px repeat(7,1fr);gap:3px}
   .mgrid .mw{font-size:9px}
@@ -236,7 +255,7 @@ var DOW=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],FULLDOW=["Monday","Tuesday",
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var FULLMON=["January","February","March","April","May","June","July","August","September","October","November","December"];
 var PREF={0:1,3:1,4:1};
-var TYPE_NAME={C:"Clinical",R:"Research",O:"Free",F:"Fixed",E:"None",L:"Leave",H:"Bank holiday"};
+var TYPE_NAME={C:"Clinical",R:"Research",O:"Free",F:"Fixed",E:"None",L:"Leave",H:"Bank holiday",T:"Other leave"};
 var CYCLE=["C","R","O","F","E"];
 var WT={motion:{n:"Motion",long:"Motion (CrossFit)",t:"M"},home:{n:"Home Gym",long:"Home Gym (Shift)",t:"H"},dl:{n:"David Lloyd",long:"David Lloyd",t:"DL"},other:{n:"Other",long:"Other",t:"O"}};
 var WTK=["motion","home","dl","other"];
@@ -264,6 +283,8 @@ var DEFAULT_WO=[
 var FIXNAME={"0":"ECT","1":"Private list"};
 
 var S=JSON.parse(document.getElementById("app-state").textContent);
+var R=null;try{R=JSON.parse(localStorage.getItem("lp-rota")||"null");}catch(e){}
+var monthMode="grid";
 var view="week",weekOff=0,fortnight=false,monthOff=0,editMirror=true,listFrom=null,listTo=null,listFmt="rich",sumFmt="rich";
 var art=null,dirty=false,saveTimer=null,canSave=true,lsMode=false,dlgDate=null;
 
@@ -291,6 +312,7 @@ function migrate(){
   if(!S.workouts)S.workouts={};
   if(!S.motionPlans)S.motionPlans=[{from:"2026-11",n:5}];
   if(!S.fixedNames)S.fixedNames=FIXNAME;
+  if(!S.pa)S.pa={dcc:7.092,spa:2,apa:3,weeks:42,premH:3,stdH:4};
   Object.keys(S.workouts).forEach(function(k){
     var v=S.workouts[k];
     if(typeof v==="string"){S.workouts[k]=v?[{t:"other",w:"",n:v}]:[];}
@@ -311,7 +333,33 @@ function blockFor(d){
   return null;
 }
 function lk(d,i){return K(d)+"|"+i;}
-function isLeave(d,i){return !!S.leave[lk(d,i)];}
+// ---------- rota (CLW feed via the sync gist) ----------
+var rotaIdx=null;
+function rotaOn(){return !!(R&&R.work);}
+function rotaIndex(){
+  if(rotaIdx)return rotaIdx;
+  var w={},max="";
+  if(R)(R.work||[]).forEach(function(e){(w[e.d]=w[e.d]||[]).push(e);if(e.d>max)max=e.d;});
+  rotaIdx={w:w,l:(R&&R.leave)||[],max:max};
+  return rotaIdx;
+}
+function rotaWork(k){return rotaIndex().w[k]||[];}
+function isOC(e){return /on.?call/i.test(e.l);}
+function onCall(k){return !!S.onCall[k]||rotaWork(k).some(isOC);}
+function rotaLeaveFor(d,i){
+  var k=K(d),L=rotaIndex().l;
+  for(var j=0;j<L.length;j++){
+    var x=L[j];if(k<x.from||k>x.to)continue;
+    if(i===0&&k===x.from&&x.st>="12:00")continue;
+    if(i===1&&k===x.to&&x.en<="13:00")continue;
+    return x.t||"Leave";
+  }
+  return null;
+}
+function isRotaAL(d,i){return /annual/i.test(rotaLeaveFor(d,i)||"");}
+function isPlanned(d,i){return !!S.leave[lk(d,i)];}
+function isLeave(d,i){return isPlanned(d,i)||isRotaAL(d,i);}
+function showPlanned(d,i){return rotaOn()&&isPlanned(d,i);}
 function dayCovered(d,s){
   var day=[0,1].filter(function(i){return s[i]==="C";});
   return day.length>0&&day.every(function(i){return isLeave(d,i);});
@@ -319,12 +367,20 @@ function dayCovered(d,s){
 function eff(d){
   var s=sessionsFor(d);if(!s)return null;
   if(isBH(d))return s.map(function(t){return t==="E"?"E":"H";});
-  var cov=dayCovered(d,s);
-  return s.map(function(t,i){return (t==="C"&&(isLeave(d,i)||(i===2&&cov)))?"L":t;});
+  var out=s.map(function(t,i){
+    if(t!=="C"||i===2)return t;
+    if(isLeave(d,i))return "L";
+    if(rotaLeaveFor(d,i))return "T";
+    return t;
+  });
+  if(s[2]==="C"){var day=[0,1].filter(function(i){return s[i]==="C";});
+    if(day.length&&day.every(function(i){return out[i]==="L"||out[i]==="T";}))out[2]=out[day[0]];}
+  return out;
 }
+function otherLeaveName(d){for(var i=0;i<2;i++){var t=rotaLeaveFor(d,i);if(t&&!/annual/i.test(t))return t;}return "Other leave";}
 function isFreeDay(d){
   var k=K(d);
-  if(S.onCall[k])return false;
+  if(onCall(k))return false;
   var b=blockFor(d);if(b&&b.kind==="booked")return true;
   var e=eff(d);if(!e)return true;
   for(var i=0;i<e.length;i++){var t=e[i];if(t==="C"||t==="F")return false;if(t==="R"&&!S.researchFree)return false;}
@@ -333,7 +389,7 @@ function isFreeDay(d){
 function cleanLeave(){
   Object.keys(S.leave).forEach(function(k){
     var p=k.split("|"),d=P(p[0]),s=sessionsFor(d);
-    if(!s||s[+p[1]]!=="C"||isBH(d)||+p[1]===2)delete S.leave[k];
+    if(!s||s[+p[1]]!=="C"||isBH(d)||+p[1]===2||isRotaAL(d,+p[1]))delete S.leave[k];
   });
 }
 function yearBounds(ref){
@@ -349,8 +405,15 @@ function plannerLeave(){
   Object.keys(S.leave).forEach(function(k){var d=k.split("|")[0];if(S.leave[k]&&d>=a&&d<=b)n++;});
   return n;
 }
-function adjustNow(){return +(S.adjust[yearBounds().key]||0);}
-function leaveCount(){return plannerLeave()+adjustNow();}
+var bookedCache=null;
+function bookedLeave(){
+  if(bookedCache!=null)return bookedCache;
+  var n=0;if(rotaOn()){var y=yearBounds();
+    for(var d=new Date(y.start);d<=y.end;d=add(d,1)){var s=sessionsFor(d);if(!s||isBH(d))continue;for(var i=0;i<2;i++)if(s[i]==="C"&&isRotaAL(d,i))n++;}}
+  bookedCache=n;return n;
+}
+function adjustNow(){return rotaOn()?0:+(S.adjust[yearBounds().key]||0);}
+function leaveCount(){return bookedLeave()+plannerLeave()+adjustNow();}
 function sessionsLeft(){return S.annual-leaveCount();}
 function rangeDays(){
   var out=[],d=monday(today()),end=add(monday(P(yearEnd())),6);
@@ -365,14 +428,14 @@ function computeRuns(){
   var runs=[],cur=null;
   days.forEach(function(d){
     if(isFreeDay(d)){
-      if(!cur)cur={start:d,end:d,leave:0,days:0};
+      if(!cur)cur={start:d,end:d,leave:0,other:0,days:0};
       cur.end=d;cur.days++;
       var e=eff(d);
-      if(e)cur.leave+=e.filter(function(t,i){return t==="L"&&i!==2;}).length;
+      if(e){cur.leave+=e.filter(function(t,i){return t==="L"&&i!==2;}).length;cur.other+=e.filter(function(t,i){return t==="T"&&i!==2;}).length;}
     }else{if(cur)runs.push(cur);cur=null;}
   });
   if(cur)runs.push(cur);
-  runCache=runs.filter(function(r){return r.leave>0;});
+  runCache=runs.filter(function(r){return r.leave>0||r.other>0;});
   return runCache;
 }
 function runSet(){var o={};computeRuns().forEach(function(r){for(var d=r.start;d<=r.end;d=add(d,1))o[K(d)]=1;});return o;}
@@ -431,8 +494,30 @@ function motionCount(m){
 function woLabel(x,short){return (short?WT[x.t].n:WT[x.t].long)+(x.w?" · "+WHEN[x.w]:"")+(x.n?" – "+x.n:"");}
 
 // ---------- describing a day ----------
-function slotName(d,t){return t==="F"?fixedName(d):TYPE_NAME[t];}
+function slotName(d,t){return t==="F"?fixedName(d):t==="T"?otherLeaveName(d):TYPE_NAME[t];}
+var SI={am:0,pm:1,eve:2,night:3},SN=["AM","PM","Eve","Night"];
+// Rota allocations for a day, grouped: [{label, slots:[...], oc:bool}]
+function rotaGroups(k){
+  var ev=rotaWork(k),g=[],by={};
+  ev.forEach(function(e){var key=e.l;if(!by[key]){by[key]={label:e.l,slots:[],oc:isOC(e)};g.push(by[key]);}by[key].slots.push(SI[e.s]!=null?SI[e.s]:-1);});
+  return g;
+}
+function slotList(sl){return sl.filter(function(i){return i>=0;}).sort().map(function(i){return SN[i];}).join("+");}
+function rotaText(k){
+  return rotaGroups(k).map(function(g){return g.oc?"On call ("+slotList(g.slots).toLowerCase()+")":slotList(g.slots)+" "+g.label;}).join(" · ");
+}
 function workText(d){
+  var k0=K(d);
+  if(rotaWork(k0).length){
+    var e0=eff(d),used={},extra=[];
+    rotaWork(k0).forEach(function(e){if(SI[e.s]!=null)used[SI[e.s]]=1;});
+    if(e0)e0.forEach(function(t,i){if(i<2&&!used[i]&&t!=="E"&&t!=="C")extra.push(SN[i]+" "+(t==="L"?"Leave":slotName(d,t)));});
+    var b0=blockFor(d);
+    return [rotaText(k0)].concat(extra).concat(b0?[b0.label]:[]).join(" · ");
+  }
+  return workTextPlan(d);
+}
+function workTextPlan(d){
   var k=K(d),e=eff(d),b=blockFor(d),parts=[];
   if(!e)parts.push("Weekend");
   else if(isBH(d))parts.push("Bank holiday – "+BH[k]);
@@ -440,14 +525,14 @@ function workText(d){
     var a=e[0],p=e[1],v=e[2];
     var nm=function(t){return t==="L"?"Leave":slotName(d,t);};
     if(a===p){
-      var base=a==="L"?"Annual leave":a==="O"?"Off":a==="R"?"Research day":nm(a)+" all day";
+      var base=a==="L"?"Annual leave":a==="T"?otherLeaveName(d):a==="O"?"Off":a==="R"?"Research day":nm(a)+" all day";
       parts.push(base+(v!=="E"&&v!=="L"?" + evening ("+nm(v).toLowerCase()+")":""));
     }else{
       parts.push("AM "+nm(a)+" · PM "+nm(p)+(v!=="E"&&v!=="L"?" · Evening "+nm(v):""));
     }
   }
   if(b)parts.push(b.label);
-  if(S.onCall[k])parts.push("On call");
+  if(onCall(k))parts.push("On call");
   return parts.join(" · ");
 }
 
@@ -457,15 +542,16 @@ function buildDoc(){
   var css=document.getElementById("app-css").textContent,js=document.getElementById("app-js").textContent;
   return "<!DOCTYPE html>\n<html lang=\"en-GB\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>Leave Planner</title>\n<style id=\"app-css\">"+css+"</style>\n</head>\n<body>\n<div class=\"wrap\" id=\"root\"></div>\n<div class=\"scrim\" id=\"scrim\"><div class=\"dlg\" id=\"dlg\"></div></div>\n<script id=\"app-state\" type=\"application/json\">"+snapshot()+"<\/script>\n<script id=\"app-js\">"+js+"<\/script>\n</body>\n</html>\n";
 }
+function resetCaches(){runCache=null;bookedCache=null;rotaIdx=null;}
 function changed(noRender){
-  cleanLeave();runCache=null;
+  cleanLeave();resetCaches();
   dirty=true;S.updatedAt=Date.now();
   if(lsMode){try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}dirty=false;
     if(gh.token&&gh.gist){clearTimeout(syncTimer);syncText="Syncing…";syncTimer=setTimeout(syncPush,2500);}}
   if(!noRender)render();else setSaveText(saveLabel());
   if(art&&canSave){clearTimeout(saveTimer);saveTimer=setTimeout(save,2500);}
 }
-function uiState(){return {y:window.scrollY,view:view,weekOff:weekOff,fortnight:fortnight,monthOff:monthOff};}
+function uiState(){return {y:window.scrollY,view:view,weekOff:weekOff,fortnight:fortnight,monthOff:monthOff,monthMode:monthMode};}
 function save(){
   if(!art||!dirty)return;
   if(scrim.classList.contains("on")){clearTimeout(saveTimer);saveTimer=setTimeout(save,1500);return;}
@@ -499,12 +585,14 @@ function syncPush(){
 function syncPull(){
   if(!gh.token||!gh.gist)return Promise.resolve(false);
   return ghFetch("GET","/gists/"+gh.gist).then(function(g){
-    var f=g.files&&g.files[GIST_FILE];if(!f)return false;
+    var rf=g.files&&g.files["rota.json"],rotaChanged=false;
+    if(rf&&rf.content){try{var ro=JSON.parse(rf.content);if(!R||ro.fetched!==R.fetched){R=ro;rotaChanged=true;resetCaches();try{localStorage.setItem("lp-rota",rf.content);}catch(e){}}}catch(e){}}
+    var f=g.files&&g.files[GIST_FILE];if(!f)return rotaChanged;
     var o=JSON.parse(f.content);
     syncText="Synced "+hhmm();
-    if(o&&o.pattern&&(o.updatedAt||0)>(S.updatedAt||0)){S=o;migrate();runCache=null;try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}return true;}
-    if((S.updatedAt||0)>(o.updatedAt||0))return syncPush().then(function(){return false;});
-    return false;
+    if(o&&o.pattern&&(o.updatedAt||0)>(S.updatedAt||0)){S=o;migrate();resetCaches();try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}return true;}
+    if((S.updatedAt||0)>(o.updatedAt||0))return syncPush().then(function(){return rotaChanged;});
+    return rotaChanged;
   }).catch(function(e){syncText="Sync failed – "+e.message;return false;});
 }
 function syncConnect(token,gist){
@@ -540,16 +628,29 @@ function motionTile(m,label){
 function chip(t,label,cls){return "<span class='chip "+t+(cls?" "+cls:"")+"'>"+label+"</span>";}
 function workChips(d){
   var k=K(d),e=eff(d),b=blockFor(d),h="";
+  var rg=rotaGroups(k);
+  if(rg.length){
+    var used={};
+    rg.forEach(function(g){g.slots.forEach(function(i){used[i]=1;});
+      h+=g.oc?chip("oc","On call <span class='sl' style='opacity:.85'>"+slotList(g.slots).toLowerCase()+"</span>"):chip("A","<span class='sl'>"+slotList(g.slots)+"</span> "+esc(g.label));});
+    if(e)e.forEach(function(t,i){if(i<2&&!used[i]&&t!=="E"&&t!=="C")h+=chip(t,"<span class='sl'>"+SLOTS[i]+"</span> "+esc(t==="L"?(showPlanned(d,i)?"Planned leave":"Leave"):slotName(d,t)));});
+    if(isBH(d))h+=chip("H","🏦 "+esc(BH[k]));
+    if(b)h+=chip("blk",esc(b.label));
+    return h;
+  }
   if(!e)h+=chip("O","Weekend");
   else if(isBH(d))h+=chip("H","🏦 "+esc(BH[k]));
   else{
     var a=e[0],p=e[1];
     var nm=function(t){return t==="L"?"Leave":slotName(d,t);};
-    if(a===p&&(e[2]==="E"||e[2]===a)){h+=chip(a,(a==="L"?"Annual leave":a==="O"?"Off":esc(nm(a))+(e[2]!=="E"?" <span class='sl'>+ eve</span>":"")));}
-    else e.forEach(function(t,i){if(t==="E")return;h+=chip(t,"<span class='sl'>"+SLOTS[i]+"</span> "+esc(nm(t)));});
+    var plannedDay=[0,1].some(function(i){return showPlanned(d,i);});
+    var lname=function(t){return t==="L"?(plannedDay?"Planned leave":"Annual leave"):t==="O"?"Off":esc(nm(t));};
+    var lcls=function(t){return t==="L"&&plannedDay?"P":t;};
+    if(a===p&&(e[2]==="E"||e[2]===a)){h+=chip(lcls(a),lname(a)+(a!=="L"&&a!=="T"&&e[2]!=="E"?" <span class='sl'>+ eve</span>":""));}
+    else e.forEach(function(t,i){if(t==="E")return;h+=chip(t==="L"&&showPlanned(d,i)?"P":t,"<span class='sl'>"+SLOTS[i]+"</span> "+(t==="L"?(showPlanned(d,i)?"Planned leave":"Leave"):esc(nm(t))));});
   }
   if(b)h+=chip("blk",esc(b.label));
-  if(S.onCall[k])h+=chip("oc","On call");
+  if(onCall(k))h+=chip("oc","On call");
   return h;
 }
 function woChip(k,x,i){return "<span class='wo "+x.t+"' data-act='day' data-k='"+k+"'><span class='tg'>"+WT[x.t].t+"</span><span class='tx'>"+esc(WT[x.t].n+(x.w?" · "+WHEN[x.w]:"")+(x.n?" – "+x.n:""))+"</span></span>";}
@@ -559,17 +660,10 @@ function quickAdd(k,has){return "<button class='addbtn' data-act='day' data-k='"
 function renderWeek(){
   var start=add(monday(today()),weekOff*7),n=fortnight?14:7,end=add(start,n-1),t=today();
   var rw=rotaWeek(start)+1;
-  var h="<div class='navbar'><button class='btn ic' data-act='wk' data-d='-1' aria-label='Previous'>‹</button><button class='btn ic' data-act='wk' data-d='1' aria-label='Next'>›</button>"+
+  var h=glance()+"<div class='navbar'><button class='btn ic' data-act='wk' data-d='-1' aria-label='Previous'>‹</button><button class='btn ic' data-act='wk' data-d='1' aria-label='Next'>›</button>"+
     "<div class='ttl'>"+fmtS(start)+" – "+fmtS(end)+" "+end.getFullYear()+"<small>Rota "+(fortnight?"Weeks "+rw+" & "+((rw%8)+1):"Week "+rw)+(weekOff===0?" · this week":"")+"</small></div><span class='sp'></span>"+
     (weekOff!==0?"<button class='btn sm' data-act='wk' data-d='0'>This week</button>":"")+
     "<span class='seg'><button data-act='span' data-v='0' class='"+(fortnight?"":"on")+"'>Week</button><button data-act='span' data-v='1' class='"+(fortnight?"on":"")+"'>Fortnight</button></span></div>";
-  // summary
-  var st=periodStats(start,n);
-  h+="<div class='strip'>"+tile(st.clin,"Clinical sessions")+tile(st.res,"Research sessions")+tile(st.leave,"Leave sessions")+
-    tile(st.wo,"Workouts planned","",st.wo?"<div style='margin-top:4px;display:flex;gap:4px;flex-wrap:wrap'>"+WTK.filter(function(x){return st.by[x];}).map(function(x){return "<span class='wo "+x+"' style='cursor:default;padding:1px 6px 1px 2px'><span class='tg' style='height:16px;min-width:18px;font-size:10px'>"+WT[x].t+"</span>"+st.by[x]+"</span>";}).join("")+"</div>":"");
-  st.months.forEach(function(m){h+=motionTile(m,FULLMON[+m.slice(5)-1]);});
-  h+="</div>";
-  h+="<div class='ctl'><span class='seg'>"+[["rich","Rich text"],["md","Markdown"],["plain","Plain"]].map(function(f){return "<button data-act='sumfmt' data-v='"+f[0]+"' class='"+(sumFmt===f[0]?"on":"")+"'>"+f[1]+"</button>";}).join("")+"</span><button class='btn pri sm' data-act='copysum'>Copy "+(fortnight?"fortnight":"week")+" summary</button><span id='summsg' class='note' style='margin:0'></span></div><textarea id='sumta' class='lta' rows='14' readonly style='display:none;margin-bottom:12px'></textarea>";
   h+="<div class='wkhead'><span>Day</span><span>Work</span><span>Fitness</span></div>";
   for(var i=0;i<n;i++){
     var d=add(start,i),k=K(d);
@@ -586,7 +680,49 @@ function renderWeek(){
       (S.notes[k]?"<div class='nt'>"+esc(S.notes[k])+"</div>":"")+
     "</div>";
   }
+  // beneath the week: workouts, PAs, summary export
+  var st=periodStats(start,n);
+  h+="<div class='panel' style='margin-top:14px'><div class='wfoot'>";
+  h+="<div><div class='ft'>Workouts planned</div><div class='fn'>"+st.wo+"</div><div class='fb'>"+(st.wo?WTK.filter(function(x){return st.by[x];}).map(function(x){return "<span class='wo "+x+"' style='cursor:default;padding:1px 7px 1px 2px'><span class='tg' style='height:16px;min-width:18px;font-size:10px'>"+WT[x].t+"</span>"+st.by[x]+"</span>";}).join(""):"<span class='note' style='margin:0'>None yet</span>")+"</div></div>";
+  st.months.forEach(function(m){var c=motionCount(m),lim=motionLimit(m);h+="<div><div class='ft'>Motion · "+FULLMON[+m.slice(5)-1]+"</div><div class='fn"+(c>lim?" over":"")+"'>"+c+" / "+lim+"</div><div class='meter"+(c>lim?" over":"")+"' style='max-width:160px'><i style='width:"+(lim?Math.min(100,Math.round(100*c/lim)):0)+"%'></i></div></div>";});
+  if(rotaOn()){var pa=paEstimate(start,n);h+="<div><div class='ft'>Rota sessions (est.)</div><div class='fn'>"+pa.pa.toFixed(1)+" PA</div><div class='note' style='margin:0'>"+pa.n+" session"+(pa.n===1?"":"s")+(pa.oc?" · "+pa.oc+" on-call day"+(pa.oc>1?"s":""):"")+" · DCC avg "+(S.pa.dcc*(n/7)).toFixed(1)+"</div></div>";}
+  h+="</div><div class='ctl' style='margin:12px 0 0'><span class='seg'>"+[["rich","Rich text"],["md","Markdown"],["plain","Plain"]].map(function(f){return "<button data-act='sumfmt' data-v='"+f[0]+"' class='"+(sumFmt===f[0]?"on":"")+"'>"+f[1]+"</button>";}).join("")+"</span><button class='btn pri sm' data-act='copysum'>Copy "+(fortnight?"fortnight":"week")+" summary</button><span id='summsg' class='note' style='margin:0'></span></div><textarea id='sumta' class='lta' rows='14' readonly style='display:none;margin-top:10px'></textarea>";
+  if(rotaOn())h+="<div class='note'>Theatre allocations from CLW rota"+(rotaIndex().max?" (published to "+fmt(P(rotaIndex().max))+")":"")+" · updated "+rotaAge()+".</div>";
+  h+="</div>";
   return h;
+}
+function rotaAge(){if(!R||!R.fetched)return "never";var m=Math.round((Date.now()-new Date(R.fetched).getTime())/60000);return m<60?m+" min ago":m<1440?Math.round(m/60)+" h ago":Math.round(m/1440)+" d ago";}
+// Estimated PAs from rota sessions (on-call excluded): weekday 07:00–19:00 at 4 h/PA, other time at 3 h/PA
+function paEstimate(start,n){
+  var r={pa:0,n:0,oc:0,std:0,prem:0};
+  for(var i=0;i<n;i++){
+    var d=add(start,i),k=K(d),ev=rotaWork(k),ocd=false;
+    ev.forEach(function(e){
+      if(isOC(e)){ocd=true;return;}
+      r.n++;
+      var a=hm(e.st),b=hm(e.en);if(b<=a)b+=24*60;
+      var std=0,tot=b-a;
+      if(dow(d)<5){std=Math.max(0,Math.min(b,19*60)-Math.max(a,7*60));}
+      r.std+=std/60;r.prem+=(tot-std)/60;
+    });
+    if(ocd)r.oc++;
+  }
+  r.pa=r.std/S.pa.stdH+r.prem/S.pa.premH;
+  return r;
+}
+function hm(t){var p=(t||"0:0").split(":");return (+p[0])*60+(+p[1]);}
+function glance(){
+  var t=today(),k=K(t),items=[];
+  var w=wos(k);
+  items.push("<div class='gl'><span class='gk'>Today</span><span class='gv'>"+esc(workText(t))+(w.length?" · "+esc(w.map(function(x){return WT[x.t].n;}).join(", ")):"")+"</span></div>");
+  var noc=null;for(var i=1;i<120&&!noc;i++){var d=add(t,i);if(onCall(K(d)))noc=d;}
+  items.push("<div class='gl'><span class='gk'>Next on call</span><span class='gv'>"+(noc?fmt(noc):"None in rota")+"</span></div>");
+  var nb=computeRuns().filter(function(r){return r.end>=t;})[0];
+  items.push("<div class='gl' data-act='tab' data-v='leave'><span class='gk'>Next break</span><span class='gv'>"+(nb?fmt(nb.start)+" – "+fmt(nb.end)+" ("+nb.days+" days)":"None booked")+" ›</span></div>");
+  var m=ym(t);
+  items.push("<div class='gl' data-act='tab' data-v='month'><span class='gk'>Motion</span><span class='gv'>"+motionCount(m)+" / "+motionLimit(m)+" in "+FULLMON[t.getMonth()]+" ›</span></div>");
+  items.push("<div class='gl' data-act='tab' data-v='leave'><span class='gk'>Leave left</span><span class='gv'>"+sessionsLeft()+" of "+S.annual+" ›</span></div>");
+  return "<div class='glance'>"+items.join("")+"</div>";
 }
 function periodStats(start,n){
   var st={clin:0,res:0,leave:0,wo:0,by:{},months:[]};
@@ -628,40 +764,62 @@ function weekSummary(start,n){
 }
 
 // Month
+function monthCell(d,base,t,rs){
+  var k=K(d),e=eff(d),b=blockFor(d),w=wos(k),rg=rotaGroups(k).filter(function(g){return !g.oc;});
+  var cls="mc"+(dow(d)>4?" we":"")+(base!=null&&d.getMonth()!==base?" out":"")+(d<t?" pastd":"")+(d.getTime()===t.getTime()?" today":"")+(rs[k]&&!b?" run":"")+(b&&b.kind==="booked"?" blk":"");
+  var h="<div class='"+cls+"' data-act='day' data-k='"+k+"' title='"+esc(fmt(d)+" – "+workText(d))+"'><div class='tp'>"+d.getDate()+(d.getDate()===1&&base==null?" "+MON[d.getMonth()]:"")+"<span class='x'>"+(onCall(k)?"<i class='dot oc' title='On call'></i>":"")+(S.notes[k]?"<i class='dot nt' title='Note'></i>":"")+"</span></div>";
+  if(e)h+="<div class='bars'>"+e.filter(function(x){return x!=="E";}).map(function(x){return "<i class='b-"+x+"'></i>";}).join("")+"</div>";
+  if(rg.length)h+="<div class='rl'>"+esc(rg.map(function(g){return g.label;}).join(" / "))+"</div>";
+  if(isBH(d))h+="<div class='tag bh'>🏦 "+esc(BH[k])+"</div>";
+  else if(b)h+="<div class='tag'>"+esc(b.label)+"</div>";
+  if(w.length)h+="<div class='ws'>"+w.map(function(x){return "<div class='w1'><span class='tg "+x.t+"'>"+WT[x.t].t+"</span><span>"+esc(x.w?WHEN[x.w]:(x.n||WT[x.t].n))+"</span></div>";}).join("")+"</div>";
+  return h+"</div>";
+}
+function monthLegend(){return "<div class='legend' style='margin-top:12px'><span><i class='sw b-C'></i>Clinical</span><span><i class='sw b-R'></i>Research</span><span><i class='sw b-O'></i>Free</span><span><i class='sw b-F'></i>ECT / private</span><span><i class='sw b-L'></i>Leave</span><span><i class='sw b-T'></i>TOIL / other leave</span><span><i class='sw b-H'></i>Bank holiday</span><span><i class='sw' style='background:var(--run);border:1px solid var(--run-line)'></i>Break</span><span><i class='dot oc'></i> On call</span><span><i class='dot nt'></i> Note</span></div>";}
 function renderMonth(){
   var base=new Date(today().getFullYear(),today().getMonth()+monthOff,1),m=ym(base),t=today(),rs=runSet();
-  var first=monday(base),last=new Date(base.getFullYear(),base.getMonth()+1,0),end=add(monday(last),6);
-  var h="<div class='navbar'><button class='btn ic' data-act='mo' data-d='-1' aria-label='Previous month'>‹</button><button class='btn ic' data-act='mo' data-d='1' aria-label='Next month'>›</button><div class='ttl'>"+FULLMON[base.getMonth()]+" "+base.getFullYear()+"</div><span class='sp'></span>"+(monthOff!==0?"<button class='btn sm' data-act='mo' data-d='0'>This month</button>":"")+"</div>";
-  // month stats
+  var last=new Date(base.getFullYear(),base.getMonth()+1,0);
+  var mode="<span class='seg'><button data-act='mmode' data-v='grid' class='"+(monthMode==="grid"?"on":"")+"'>Month</button><button data-act='mmode' data-v='list' class='"+(monthMode==="list"?"on":"")+"'>Scroll</button></span>";
+  var h="<div class='navbar'><button class='btn ic' data-act='mo' data-d='-1' aria-label='Previous month'>‹</button><button class='btn ic' data-act='mo' data-d='1' aria-label='Next month'>›</button><div class='ttl'>"+FULLMON[base.getMonth()]+" "+base.getFullYear()+(monthMode==="list"?"<small>and the months after</small>":"")+"</div><span class='sp'></span>"+(monthOff!==0?"<button class='btn sm' data-act='mo' data-d='0'>This month</button>":"")+mode+"</div>";
   var lv=0,wo=0,by={};
   for(var d0=new Date(base);d0<=last;d0=add(d0,1)){var e0=eff(d0);if(e0)e0.forEach(function(x,j){if(x==="L"&&j!==2)lv++;});wos(K(d0)).forEach(function(x){wo++;by[x.t]=(by[x.t]||0)+1;});}
-  h+="<div class='strip'>"+motionTile(m,"this month")+tile(wo,"Workouts planned","",wo?"<div class='note' style='margin-top:2px'>"+WTK.filter(function(x){return by[x];}).map(function(x){return WT[x].n+" "+by[x];}).join(" · ")+"</div>":"")+tile(lv,"Leave sessions")+tile(sessionsLeft(),"Leave left this year")+"</div>";
-  h+="<div class='mgrid'><div></div>"+DOW.map(function(x,i){return "<div class='mh'>"+x+(PREF[i]?" <span class='star'>★</span>":"")+"</div>";}).join("");
-  for(var d=first;d<=end;d=add(d,1)){
-    if(dow(d)===0)h+="<div class='mw'>Wk<br><b>"+(rotaWeek(d)+1)+"</b></div>";
-    var k=K(d),e=eff(d),b=blockFor(d),w=wos(k);
-    var cls="mc"+(dow(d)>4?" we":"")+(d.getMonth()!==base.getMonth()?" out":"")+(d.getTime()===t.getTime()?" today":"")+(rs[k]&&!b?" run":"")+(b&&b.kind==="booked"?" blk":"");
-    h+="<div class='"+cls+"' data-act='day' data-k='"+k+"'><div class='tp'>"+d.getDate()+"<span class='x'>"+(S.onCall[k]?"<i class='dot oc' title='On call'></i>":"")+(S.notes[k]?"<i class='dot nt' title='Note'></i>":"")+"</span></div>";
-    if(e)h+="<div class='bars'>"+e.filter(function(x,j){return x!=="E";}).map(function(x){return "<i class='b-"+x+"'></i>";}).join("")+"</div>";
-    if(isBH(d))h+="<div class='tag bh'>🏦 "+esc(BH[k])+"</div>";
-    else if(b)h+="<div class='tag'>"+esc(b.label)+"</div>";
-    if(w.length)h+="<div class='ws'>"+w.map(function(x){return "<div class='w1'><span class='tg "+x.t+"'>"+WT[x.t].t+"</span><span>"+esc(x.w?WHEN[x.w]:(x.n||WT[x.t].n))+"</span></div>";}).join("")+"</div>";
+  var c=motionCount(m),lim=motionLimit(m);
+  h+="<div class='glance'><div class='gl'><span class='gk'>Motion · "+FULLMON[base.getMonth()]+"</span><span class='gv' style='color:"+(c>lim?"var(--na-ink)":"inherit")+"'>"+c+" / "+lim+"</span></div><div class='gl'><span class='gk'>Workouts planned</span><span class='gv'>"+wo+(wo?" · "+WTK.filter(function(x){return by[x];}).map(function(x){return WT[x].t+" "+by[x];}).join(" "):"")+"</span></div><div class='gl'><span class='gk'>Leave this month</span><span class='gv'>"+lv+" session"+(lv===1?"":"s")+"</span></div></div>";
+  var head="<div class='mgrid'><div></div>"+DOW.map(function(x,i){return "<div class='mh'>"+x+(PREF[i]?" <span class='star'>★</span>":"")+"</div>";}).join("");
+  if(monthMode==="grid"){
+    h+=head;
+    for(var d=monday(base),end=add(monday(last),6);d<=end;d=add(d,1)){
+      if(dow(d)===0)h+="<div class='mw'>Wk<br><b>"+(rotaWeek(d)+1)+"</b></div>";
+      h+=monthCell(d,base.getMonth(),t,rs);
+    }
+    h+="</div>";
+  }else{
+    // continuous scroll: from this month to the end of the leave year (at least 6 months)
+    var stop=new Date(base.getFullYear(),base.getMonth()+6,0);var ye=P(yearEnd());if(ye>stop)stop=ye;
+    h+=head;
+    for(var d2=monday(base),end2=add(monday(stop),6);d2<=end2;d2=add(d2,7)){
+      var first=null;for(var f=0;f<7;f++){var x=add(d2,f);if(x.getDate()===1){first=x;break;}}
+      if(d2.getTime()===monday(base).getTime()&&!first)first=base;
+      if(first)h+="<div class='mhead'>"+FULLMON[first.getMonth()]+" "+first.getFullYear()+"</div>";
+      h+="<div class='mw'>Wk<br><b>"+(rotaWeek(d2)+1)+"</b></div>";
+      for(var j2=0;j2<7;j2++)h+=monthCell(add(d2,j2),null,t,rs);
+    }
     h+="</div>";
   }
-  h+="</div><div class='legend' style='margin-top:12px'><span><i class='sw b-C'></i>Clinical</span><span><i class='sw b-R'></i>Research</span><span><i class='sw b-O'></i>Free</span><span><i class='sw b-F'></i>ECT / private</span><span><i class='sw b-L'></i>Leave</span><span><i class='sw b-H'></i>Bank holiday</span><span><i class='sw' style='background:var(--run);border:1px solid var(--run-line)'></i>Break</span><span><i class='dot oc'></i> On call</span><span><i class='dot nt'></i> Note</span></div>";
-  return h;
+  return h+monthLegend();
 }
 
 // Year (leave puzzle)
 function yearTiles(){
   var used=leaveCount(),left=S.annual-used,runs=computeRuns(),yb=yearBounds();
   var longest=runs.reduce(function(m,r){return Math.max(m,r.days);},0);
-  return "<div class='strip'>"+tile(used+" / "+S.annual,"Leave used "+dmy(yb.start)+"–"+dmy(yb.end),left<0?"warn":"")+tile(left,"Sessions left",left<0?"warn":"")+tile(runs.length,"Breaks")+tile(longest?longest+" days":"–","Longest break")+"</div>";
+  var sub=rotaOn()?bookedLeave()+" booked in rota · "+plannerLeave()+" planned":"Leave year "+dmy(yb.start)+"–"+dmy(yb.end);
+  return "<div class='strip'>"+tile(used+" / "+S.annual,sub,left<0?"warn":"")+tile(left,"Sessions left to "+fmtS(yb.end),left<0?"warn":"")+tile(runs.length,"Breaks")+tile(longest?longest+" days":"–","Longest break")+"</div>";
 }
 function renderYear(){
   var yb=yearBounds(),t=today(),rs=runSet();
   var h=yearTiles();
-  h+="<div class='legend'><span><i class='sw' style='background:var(--clin-bg)'></i>Clinical day</span><span><i class='sw' style='background:#f6f7f8;border:1px solid var(--line)'></i>Research / off</span><span><i class='sw' style='background:var(--leave)'></i>Leave</span><span><i class='sw' style='background:linear-gradient(135deg,var(--leave) 50%,var(--clin-bg) 50%)'></i>Part-day leave</span><span><i class='sw' style='background:var(--bh)'></i>Bank holiday</span><span><i class='sw' style='background:var(--block)'></i>Booked period</span><span><i class='sw' style='outline:2px solid var(--run-line);outline-offset:-1px'></i>Break</span></div>";
+  h+="<div class='legend'><span><i class='sw' style='background:var(--clin-bg)'></i>Clinical day</span><span><i class='sw' style='background:#f6f7f8;border:1px solid var(--line)'></i>Research / off</span><span><i class='sw' style='background:var(--leave)'></i>Leave</span><span><i class='sw' style='background:linear-gradient(135deg,var(--leave) 50%,var(--clin-bg) 50%)'></i>Part-day leave</span><span><i class='sw' style='box-shadow:inset 0 0 0 1.5px var(--leave)'></i>Planned (not yet in rota)</span><span><i class='sw' style='background:#fbe5d9'></i>TOIL / other</span><span><i class='sw' style='background:var(--bh)'></i>Bank holiday</span><span><i class='sw' style='background:var(--block)'></i>Booked period</span><span><i class='sw' style='outline:2px solid var(--run-line);outline-offset:-1px'></i>Break</span></div>";
   h+="<p class='hint'>Your leave year at a glance. Tap any day to book leave, plan a workout or add a note.</p><div class='yg'>";
   for(var mi=0;mi<12;mi++){
     var mStart=new Date(yb.start.getFullYear(),yb.start.getMonth()+mi,1),mEnd=new Date(mStart.getFullYear(),mStart.getMonth()+1,0);
@@ -674,7 +832,7 @@ function renderYear(){
       if(rs[k])c+=" run";
       if(d.getTime()===t.getTime())c+=" today";
       if(d<t)c+=" past";
-      h+="<div class='yc "+c+"' data-act='day' data-k='"+k+"' title='"+esc(fmt(d)+" – "+workText(d))+"'>"+d.getDate()+(S.onCall[k]?"<i class='ocd'></i>":"")+"</div>";
+      h+="<div class='yc "+c+"' data-act='day' data-k='"+k+"' title='"+esc(fmt(d)+" – "+workText(d))+"'>"+d.getDate()+(onCall(k)?"<i class='ocd'></i>":"")+"</div>";
     }
     h+="</div></div>";
   }
@@ -684,46 +842,48 @@ function yearClass(d){
   var e=eff(d),b=blockFor(d);
   if(isBH(d))return "bh";
   if(!e)return b&&b.kind==="booked"?"blk":"we";
-  var lv=0,cl=0;
-  e.forEach(function(t,i){if(i===2)return;if(t==="L")lv++;if(t==="C"||t==="F")cl++;});
-  var c=lv&&!cl?"lv":lv?"lvp":(b&&b.kind==="booked")?"blk":cl?"clin":"free";
+  var lv=0,cl=0,pl=0,ot=0;
+  e.forEach(function(t,i){if(i===2)return;if(t==="L"){lv++;if(showPlanned(d,i))pl++;}if(t==="T")ot++;if(t==="C"||t==="F")cl++;});
+  var c=lv&&pl===lv&&!cl?"pl":lv&&!cl?"lv":lv?"lvp":ot&&!cl?"ot":(b&&b.kind==="booked")?"blk":cl?"clin":"free";
   if(b&&b.kind==="unavailable")c+=" na";
   return c;
 }
 
 // Leave tab
 function renderLeave(){
-  var h=yearTiles();
+  var h=yearTiles()+renderList();
   var wins=quickWins(),maxLen=wins.reduce(function(m,x){return Math.max(m,x.len);},1);
-  h+="<div class='panel'><h2>Quick wins</h2><p class='hint'>Each clinical day in your 8-week cycle, ranked by days off per session (Mon, Thu and Fri ranked higher). \"Book next\" books the next free one.</p><div class='tscroll'><table class='t'><tr><th>Rota day</th><th>Sessions</th><th>Break</th><th></th><th>Next date</th><th></th></tr>";
+  h+="<div class='panel'><h2>Quick wins</h2><p class='hint'>Each clinical day in your 8-week cycle, ranked by days off per session (Mon, Thu and Fri ranked higher). \"Plan next\" adds the next free one."+(sessionsLeft()<=0?" <b>Your allowance is fully used, so treat these as ideas for swaps or next year.</b>":"")+"</p><div class='tscroll'><table class='t'><tr><th>Rota day</th><th>Sessions</th><th>Break</th><th></th><th>Next date</th><th></th></tr>";
   wins.forEach(function(x){
     var nd=nextDateFor(x.w,x.wd),span=nd?fmt(add(nd,-x.startOff))+" → "+fmt(add(nd,x.endOff)):"";
-    h+="<tr><td><span class='pill-day"+(x.pref?" pref":"")+"'>Wk "+(x.w+1)+" "+DOW[x.wd]+"</span></td><td>"+x.cost+"</td><td><b>"+x.len+" days</b></td><td><span class='bar' style='width:"+Math.round(56*x.len/maxLen)+"px'></span></td><td style='font-size:12px'>"+(nd?span:"<span style='color:var(--faint)'>none left</span>")+"</td><td>"+(nd?"<button class='btn sm' data-act='book' data-k='"+K(nd)+"'>Book next</button>":"")+"</td></tr>";
+    h+="<tr><td><span class='pill-day"+(x.pref?" pref":"")+"'>Wk "+(x.w+1)+" "+DOW[x.wd]+"</span></td><td>"+x.cost+"</td><td><b>"+x.len+" days</b></td><td><span class='bar' style='width:"+Math.round(56*x.len/maxLen)+"px'></span></td><td style='font-size:12px'>"+(nd?span:"<span style='color:var(--faint)'>none left</span>")+"</td><td>"+(nd?"<button class='btn sm' data-act='book' data-k='"+K(nd)+"'>"+(rotaOn()?"Plan":"Book")+" next</button>":"")+"</td></tr>";
   });
   h+="</table></div></div>";
   var runs=computeRuns();
   h+="<div class='panel'><h2>Your breaks</h2><p class='hint'>Each run of free days that includes leave"+(S.researchFree?" (research counts as free)":"")+".</p>";
   if(!runs.length)h+="<div class='empty'>No leave booked yet.</div>";
   else{h+="<div class='tscroll'><table class='t'><tr><th>From</th><th>To</th><th>Days off</th><th>Sessions</th><th>Per session</th></tr>";
-    runs.forEach(function(r){h+="<tr><td>"+fmt(r.start)+"</td><td>"+fmt(r.end)+"</td><td><b>"+r.days+"</b></td><td>"+r.leave+"</td><td>"+(r.days/r.leave).toFixed(1)+"</td></tr>";});
+    runs.forEach(function(r){h+="<tr><td>"+fmt(r.start)+"</td><td>"+fmt(r.end)+"</td><td><b>"+r.days+"</b></td><td>"+(r.leave||"–")+(r.other?" <span class='note'>+ TOIL/other</span>":"")+"</td><td>"+(r.leave?(r.days/r.leave).toFixed(1):"–")+"</td></tr>";});
     h+="</table></div>";}
   h+="</div>";
-  h+=renderList();
   return h;
 }
 function leaveEntries(from,to){
-  var byDay={};
-  Object.keys(S.leave).forEach(function(k){var p=k.split("|");if(p[0]<from||p[0]>to)return;(byDay[p[0]]=byDay[p[0]]||[]).push(+p[1]);});
-  return Object.keys(byDay).sort().map(function(k){
-    var d=P(k),sl=byDay[k].sort(),s=sessionsFor(d),clin=s.filter(function(t,i){return t==="C"&&i!==2;}).length;
+  var out=[];
+  for(var d=P(from),e=P(to);d<=e;d=add(d,1)){
+    var s=sessionsFor(d);if(!s||isBH(d))continue;
+    var sl=[0,1].filter(function(i){return s[i]==="C"&&isLeave(d,i);});if(!sl.length)continue;
+    var clin=s.filter(function(t,i){return t==="C"&&i!==2;}).length,planned=sl.some(function(i){return isPlanned(d,i);});
     var names=sl.map(function(i){return SLOTS[i];}).join(", "),full=sl.length===clin&&clin>1;
-    return {d:d,n:sl.length,full:full,label:full?"Full day ("+names+")":names};
-  });
+    out.push({d:new Date(d),n:sl.length,full:full,planned:planned,label:(full?"Full day ("+names+")":names)+(planned&&rotaOn()?" – planned, not yet in rota":"")});
+  }
+  return out;
 }
 function listContent(){
   var from=listFrom||K(today()),to=listTo||yearEnd(),es=leaveEntries(from,to);
   var tot=es.reduce(function(a,e){return a+e.n;},0),full=es.filter(function(e){return e.full;}).length,yb=yearBounds();
-  var sum=[["Period",dmy(P(from))+" – "+dmy(P(to))],["Sessions of leave",String(tot)],["Days",es.length+(es.length?" ("+full+" full, "+(es.length-full)+" part)":"")],["Leave year",dmy(yb.start)+" – "+dmy(yb.end)+" · "+leaveCount()+" of "+S.annual+" sessions used · "+sessionsLeft()+" left"]];
+  var pl=es.filter(function(e){return e.planned;}).reduce(function(a,e){return a+e.n;},0);
+  var sum=[["Period",dmy(P(from))+" – "+dmy(P(to))],["Sessions of leave",String(tot)+(rotaOn()&&pl?" ("+(tot-pl)+" booked, "+pl+" planned)":"")],["Days",es.length+(es.length?" ("+full+" full, "+(es.length-full)+" part)":"")],["Leave year",dmy(yb.start)+" – "+dmy(yb.end)+" · "+leaveCount()+" of "+S.annual+" sessions used · "+sessionsLeft()+" left"]];
   var lines=es.map(function(e){return dmy(e.d)+" – "+longDate(e.d)+" – "+e.label;}),title="Annual leave request";
   return {
     plain:title+"\n\n"+sum.map(function(r){return r[0]+": "+r[1];}).join("\n")+"\n\n"+(lines.length?lines.join("\n"):"No leave booked in this period."),
@@ -743,6 +903,27 @@ function renderList(){
 // Setup
 function renderSetup(){
   var h="";
+  // rota feed
+  h+="<div class='panel'><h2>Rota (CLW)</h2>";
+  if(rotaOn()){
+    var ri=rotaIndex();
+    h+="<p class='hint'>Theatre allocations, on-calls and leave come in automatically from your CLW calendars, five times a day.</p><table class='t' style='max-width:460px'><tr><td>Last updated</td><td style='text-align:right'><b>"+rotaAge()+"</b></td></tr><tr><td>Sessions in the rota</td><td style='text-align:right'><b>"+(R.work||[]).length+"</b></td></tr><tr><td>Published up to</td><td style='text-align:right'><b>"+(ri.max?fmt(P(ri.max))+" "+P(ri.max).getFullYear():"–")+"</b></td></tr><tr><td>Leave entries</td><td style='text-align:right'><b>"+ri.l.length+"</b></td></tr></table>";
+    h+="<div class='note'>Leave in the rota counts as booked; leave you add in the planner shows as <i>planned</i> until it appears in the rota. To refresh now: GitHub → leave-planner → Actions → Sync rota from CLW → Run workflow, then tap Sync now.</div>";
+  }else{
+    h+="<p class='hint'>Not connected yet. Once the GitHub job is set up, your theatre allocations, on-calls and rota leave appear here automatically"+(lsMode?"":" (in the web app version)")+".</p>";
+  }
+  h+="</div>";
+  // PAs
+  var pa=S.pa,tot=pa.dcc+pa.spa+pa.apa;
+  h+="<div class='panel'><h2>Programmed activities</h2><p class='hint'>From your job plan (2003 contract, 8-week cycle). 1 PA = "+pa.stdH+" hours, or "+pa.premH+" hours in premium time.</p>";
+  h+="<div class='ctl'><label>DCC <input type='number' step='0.001' data-in='pa' data-f='dcc' value='"+pa.dcc+"' style='width:80px'></label><label>SPA <input type='number' step='0.001' data-in='pa' data-f='spa' value='"+pa.spa+"' style='width:80px'></label><label>APA / ANR <input type='number' step='0.001' data-in='pa' data-f='apa' value='"+pa.apa+"' style='width:80px'></label><label>Weeks in attendance <input type='number' data-in='pa' data-f='weeks' value='"+pa.weeks+"' style='width:64px'></label></div>";
+  h+="<table class='t' style='max-width:460px'><tr><td>Total PAs per week</td><td style='text-align:right'><b>"+tot.toFixed(3)+"</b></td></tr><tr><td>Core (DCC + SPA)</td><td style='text-align:right'><b>"+(pa.dcc+pa.spa).toFixed(3)+"</b></td></tr><tr><td>DCC across the year ("+pa.weeks+" weeks)</td><td style='text-align:right'><b>"+(pa.dcc*pa.weeks).toFixed(1)+"</b></td></tr>";
+  if(rotaOn()){
+    var y=yearBounds(),wk=0,sum=0,ses=0;
+    for(var m=monday(y.start);m<=today();m=add(m,7)){var e=paEstimate(m,7);if(e.n){wk++;sum+=e.pa;ses+=e.n;}}
+    h+="<tr><td>Rota sessions so far this leave year</td><td style='text-align:right'><b>"+ses+" ≈ "+sum.toFixed(1)+" PA</b></td></tr><tr><td>Average per working week ("+wk+" weeks)</td><td style='text-align:right'><b>"+(wk?(sum/wk).toFixed(2):"–")+" PA</b></td></tr>";
+  }
+  h+="</table><div class='note'>The rota estimate counts timetabled sessions only (weekday 07:00–19:00 at "+pa.stdH+" h per PA, other times at "+pa.premH+" h). On-call and other DCC in your job plan (admin, ward rounds, on-call work) aren't in it, so expect it to sit below your "+pa.dcc.toFixed(2)+" DCC.</div></div>";
   // fitness
   var m=ym(today());
   h+="<div class='panel'><h2>Fitness</h2><p class='hint'>Your Motion membership allowance. Changing it applies from this month onwards; earlier months keep their old figure.</p><div class='ctl'><label>Motion sessions per month <input type='number' min='0' max='60' data-in='motion' value='"+motionLimit(m)+"' style='width:70px'></label></div>";
@@ -810,20 +991,23 @@ function renderDlg(){
   h+="<div class='meta'>Rota Week "+(rotaWeek(d)+1)+" · "+d.getFullYear()+(isBH(d)?" · 🏦 "+esc(BH[k]):"")+(b?" · "+esc(b.label):"")+"</div>";
   // work
   h+="<h4>Work</h4>";
-  if(!e)h+="<div class='empty'>Weekend</div>";
+  var rgs=rotaGroups(k);
+  if(rgs.length)h+="<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px'>"+rgs.map(function(g){return g.oc?chip("oc","On call · "+slotList(g.slots).toLowerCase()):chip("A","<span class='sl'>"+slotList(g.slots)+"</span> "+esc(g.label));}).join("")+"</div><div class='note' style='margin:0 0 6px'>From the CLW rota</div>";
+  if(!e)h+=rgs.length?"":"<div class='empty'>Weekend</div>";
   else{
     e.forEach(function(t,i){
       if(t==="E")return;
       var act="";
-      if(s[i]==="C"&&i!==2&&!isBH(d))act="<button class='btn sm"+(t==="L"?"":" pri")+"' data-act='lv' data-i='"+i+"'>"+(t==="L"?"Cancel leave":"Book leave")+"</button>";
+      if(s[i]==="C"&&i!==2&&!isBH(d)&&rotaLeaveFor(d,i))act="<span class='note' style='margin:0'>"+esc(rotaLeaveFor(d,i))+" in rota</span>";
+      else if(s[i]==="C"&&i!==2&&!isBH(d))act="<button class='btn sm"+(t==="L"?"":" pri")+"' data-act='lv' data-i='"+i+"'>"+(t==="L"?(rotaOn()?"Remove planned leave":"Cancel leave"):(rotaOn()?"Plan leave":"Book leave"))+"</button>";
       else if(i===2&&s[i]==="C")act="<span class='note' style='margin:0'>"+(t==="L"?"Covered by day leave":"Covered if AM & PM on leave")+"</span>";
-      h+="<div class='slotrow'><span class='k'>"+SLOTS[i]+"</span><span class='v'>"+chip(t,t==="L"?"Leave":esc(slotName(d,t)))+"</span>"+act+"</div>";
+      h+="<div class='slotrow'><span class='k'>"+SLOTS[i]+"</span><span class='v'>"+chip(t==="L"&&showPlanned(d,i)?"P":t,t==="L"?(showPlanned(d,i)?"Planned leave":"Leave"):esc(slotName(d,t)))+"</span>"+act+"</div>";
     });
-    var clin=isBH(d)?[]:s.map(function(t,i){return t==="C"&&i!==2?i:-1;}).filter(function(i){return i>=0;});
-    if(clin.length>1){var all=clin.every(function(i){return isLeave(d,i);});
-      h+="<div style='margin-top:8px'><button class='btn sm' data-act='lvall'>"+(all?"Cancel leave for the day":"Book whole day ("+clin.length+" sessions)")+"</button></div>";}
+    var clin=isBH(d)?[]:s.map(function(t,i){return t==="C"&&i!==2&&!rotaLeaveFor(d,i)?i:-1;}).filter(function(i){return i>=0;});
+    if(clin.length>1){var all=clin.every(function(i){return isPlanned(d,i);});
+      h+="<div style='margin-top:8px'><button class='btn sm' data-act='lvall'>"+(all?(rotaOn()?"Remove planned leave for the day":"Cancel leave for the day"):(rotaOn()?"Plan whole day":"Book whole day")+" ("+clin.length+" sessions)")+"</button></div>";}
   }
-  h+="<label class='toggle'><input type='checkbox' data-in='doc' "+(S.onCall[k]?"checked":"")+"> On call</label>";
+  h+=rotaWork(k).some(isOC)?"":"<label class='toggle'><input type='checkbox' data-in='doc' "+(S.onCall[k]?"checked":"")+"> On call"+(rotaOn()?" (not in rota)":"")+"</label>";
   // fitness
   h+="<h4>Fitness <span style='text-transform:none;letter-spacing:0;font-weight:500'>· Motion "+motionCount(m)+" / "+motionLimit(m)+" in "+FULLMON[d.getMonth()]+"</span></h4>";
   if(!w.length){var tm=woTemplate(d);h+="<div class='empty'>"+(tm?"Suggested slot: "+esc(tm)+". ":"")+"Nothing planned yet.</div>";}
@@ -863,12 +1047,13 @@ document.addEventListener("click",function(ev){
     case "tab":view=el.dataset.v;render();window.scrollTo(0,0);break;
     case "wk":weekOff=el.dataset.d==="0"?0:weekOff+(+el.dataset.d)*(fortnight?2:1);render();break;
     case "span":fortnight=el.dataset.v==="1";render();break;
+    case "mmode":monthMode=el.dataset.v;render();break;
     case "mo":monthOff=el.dataset.d==="0"?0:monthOff+(+el.dataset.d);render();break;
     case "day":ev.stopPropagation();openDay(k);break;
     case "qadd":ev.stopPropagation();(S.workouts[k]=S.workouts[k]||[]).push({t:el.dataset.t,w:"",n:""});changed();break;
     case "sumfmt":sumFmt=el.dataset.v;render();break;
     case "copysum":{var st=add(monday(today()),weekOff*7);copyOut(sumFmt,weekSummary(st,fortnight?14:7),document.getElementById("summsg"),document.getElementById("sumta"));break;}
-    case "book":{var d=P(k);sessionsFor(d).forEach(function(t,i){if(t==="C"&&i!==2)S.leave[lk(d,i)]=1;});changed();break;}
+    case "book":{var d=P(k);sessionsFor(d).forEach(function(t,i){if(t==="C"&&i!==2&&!rotaLeaveFor(d,i))S.leave[lk(d,i)]=1;});changed();break;}
     case "qr":listFrom=K(today());if(el.dataset.v==="next3"){var e3=today();e3.setMonth(e3.getMonth()+3);listTo=K(e3);}else listTo=yearEnd();render();break;
     case "lfmt":listFmt=el.dataset.v;render();break;
     case "lcopy":copyOut(listFmt,listContent(),document.getElementById("lmsg"),document.getElementById("lta"));break;
@@ -892,7 +1077,7 @@ document.addEventListener("click",function(ev){
     case "dnav":{closeNoteSave();dlgDate=K(add(P(dlgDate),+el.dataset.d));renderDlg();break;}
     case "dclose":closeDay();break;
     case "lv":{var dd=P(dlgDate),key=lk(dd,+el.dataset.i);if(S.leave[key])delete S.leave[key];else S.leave[key]=1;changed(true);renderDlg();break;}
-    case "lvall":{var dd2=P(dlgDate),s2=sessionsFor(dd2),cl=s2.map(function(t,i){return t==="C"&&i!==2?i:-1;}).filter(function(i){return i>=0;}),on=cl.every(function(i){return isLeave(dd2,i);});
+    case "lvall":{var dd2=P(dlgDate),s2=sessionsFor(dd2),cl=s2.map(function(t,i){return t==="C"&&i!==2&&!rotaLeaveFor(dd2,i)?i:-1;}).filter(function(i){return i>=0;}),on=cl.every(function(i){return isPlanned(dd2,i);});
       cl.forEach(function(i){if(on)delete S.leave[lk(dd2,i)];else S.leave[lk(dd2,i)]=1;});changed(true);renderDlg();break;}
     case "wadd":(S.workouts[dlgDate]=S.workouts[dlgDate]||[]).push({t:el.dataset.t,w:"",n:""});changed(true);renderDlg();var ins=dlg.querySelectorAll("[data-in='wn']");if(ins.length)ins[ins.length-1].focus();break;
     case "wrm":wos(dlgDate).splice(+el.dataset.i,1);if(!wos(dlgDate).length)delete S.workouts[dlgDate];changed(true);renderDlg();break;
@@ -915,6 +1100,7 @@ document.addEventListener("change",function(ev){
     case "adj":S.adjust[yearBounds().key]=Math.max(0,parseInt(el.value,10)||0);changed();break;
     case "anchor":if(el.value){var d=monday(P(el.value));S.anchor=K(d);changed();}break;
     case "resfree":S.researchFree=el.checked;changed();break;
+    case "pa":S.pa[el.dataset.f]=parseFloat(el.value)||0;changed();break;
     case "bl":{var b=S.blocks.filter(function(x){return x.id===el.dataset.id;})[0];if(b){b[el.dataset.f]=el.value;changed();}break;}
     case "doc":if(el.checked)S.onCall[dlgDate]=1;else delete S.onCall[dlgDate];changed(true);break;
     case "wt":wos(dlgDate)[+el.dataset.i].t=el.value;changed(true);renderDlg();break;
@@ -928,7 +1114,7 @@ document.addEventListener("keydown",function(ev){if(ev.key==="Escape"&&scrim.cla
 
 // ---------- boot ----------
 migrate();
-try{var ui=JSON.parse(sessionStorage.getItem("lp-ui")||"null");if(ui){view=ui.view||view;weekOff=ui.weekOff||0;fortnight=!!ui.fortnight;monthOff=ui.monthOff||0;sessionStorage.removeItem("lp-ui");setTimeout(function(){window.scrollTo(0,ui.y||0);},30);}}catch(e){}
+try{var ui=JSON.parse(sessionStorage.getItem("lp-ui")||"null");if(ui){view=ui.view||view;weekOff=ui.weekOff||0;fortnight=!!ui.fortnight;monthOff=ui.monthOff||0;monthMode=ui.monthMode||"grid";sessionStorage.removeItem("lp-ui");setTimeout(function(){window.scrollTo(0,ui.y||0);},30);}}catch(e){}
 render();
 window.addEventListener("beforeunload",function(){if(dirty&&art)save();});
 function enableLS(){

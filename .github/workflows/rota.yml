@@ -1,0 +1,36 @@
+name: Sync rota from CLW
+
+on:
+  schedule:
+    - cron: "23 5,9,13,17,21 * * *"   # five times a day (UTC)
+  workflow_dispatch: {}               # "Run workflow" button for an on-demand refresh
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch rota and save to gist
+        env:
+          CLW_WORK_URL: ${{ secrets.CLW_WORK_URL }}
+          CLW_LEAVE_URL: ${{ secrets.CLW_LEAVE_URL }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+        run: python scripts/fetch_rota.py
+      # GitHub pauses scheduled jobs after 60 days without repo activity; an empty
+      # monthly commit keeps this one running. It contains no rota data.
+      - name: Keep schedule alive
+        run: |
+          last=$(git log -1 --format=%ct)
+          if [ $(( $(date +%s) - last )) -gt $(( 45*24*3600 )) ]; then
+            git config user.name "rota-sync"
+            git config user.email "rota-sync@users.noreply.github.com"
+            git commit --allow-empty -m "Keep rota sync schedule active"
+            git push
+          fi
