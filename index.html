@@ -111,7 +111,8 @@ input[type=date],input[type=number],input[type=text],input[type=password],select
 .gl[data-act]{cursor:pointer}.gl[data-act]:hover{border-color:#b9c3cf}
 .gl .gk{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 .gl .gv{font-weight:600;overflow:hidden;text-overflow:ellipsis}
-.gl:first-child{flex:2 1 260px}
+.glance.stack{flex-direction:column}
+.glance.stack .gl{flex:none}
 .wfoot{display:flex;flex-wrap:wrap;gap:14px 28px}
 .wfoot .ft{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
 .wfoot .fn{font-size:20px;font-weight:680;font-variant-numeric:tabular-nums}
@@ -695,11 +696,9 @@ function renderWeek(){
   h+="<div class='panel' style='margin-top:14px'><div class='wfoot'>";
   h+="<div><div class='ft'>Workouts planned</div><div class='fn'>"+st.wo+"</div><div class='fb'>"+(st.wo?WTK.filter(function(x){return st.by[x];}).map(function(x){return "<span class='wo "+x+"' style='cursor:default;padding:1px 7px 1px 2px'><span class='tg' style='height:16px;min-width:18px;font-size:10px'>"+WT[x].t+"</span>"+st.by[x]+"</span>";}).join(""):"<span class='note' style='margin:0'>None yet</span>")+"</div></div>";
   st.months.forEach(function(m){var c=motionCount(m),lim=motionLimit(m);h+="<div><div class='ft'>Motion · "+FULLMON[+m.slice(5)-1]+"</div><div class='fn"+(c>lim?" over":"")+"'>"+c+" / "+lim+"</div><div class='meter"+(c>lim?" over":"")+"' style='max-width:160px'><i style='width:"+(lim?Math.min(100,Math.round(100*c/lim)):0)+"%'></i></div></div>";});
-  if(rotaOn()){var pa=paEstimate(start,n);h+="<div><div class='ft'>Rota sessions (est.)</div><div class='fn'>"+pa.pa.toFixed(1)+" PA</div><div class='note' style='margin:0'>"+pa.n+" session"+(pa.n===1?"":"s")+(pa.oc?" · "+pa.oc+" on-call day"+(pa.oc>1?"s":""):"")+" · job plan "+(paSched()*(n/7)).toFixed(1)+"</div></div>";
-    var yt=paYTD();if(yt)h+="<div><div class='ft'>Year to date vs job plan</div><div class='fn' style='color:"+(yt.diff>0.5?"var(--leave)":yt.diff<-0.5?"var(--clin)":"inherit")+"'>"+(yt.diff>=0?"+":"")+yt.diff.toFixed(1)+" PA</div><div class='note' style='margin:0'>"+(yt.diff>=0?"over":"under")+" by ≈ "+Math.abs(yt.diff*S.pa.stdH).toFixed(0)+" h since "+fmtS(yt.from)+"</div></div>";}
   h+="</div><div class='ctl' style='margin:12px 0 0'><span class='seg'>"+[["rich","Rich text"],["md","Markdown"],["plain","Plain"]].map(function(f){return "<button data-act='sumfmt' data-v='"+f[0]+"' class='"+(sumFmt===f[0]?"on":"")+"'>"+f[1]+"</button>";}).join("")+"</span><button class='btn pri sm' data-act='copysum'>Copy "+(fortnight?"fortnight":"week")+" summary</button><span id='summsg' class='note' style='margin:0'></span></div><textarea id='sumta' class='lta' rows='14' readonly style='display:none;margin-top:10px'></textarea>";
   if(rotaOn())h+="<div class='note'>Theatre allocations from CLW rota"+(rotaIndex().max?" (published to "+fmt(P(rotaIndex().max))+")":"")+" · updated "+rotaAge()+".</div>";
-  h+="</div>";
+  h+="</div>"+glanceMore();
   return h;
 }
 function rotaAge(){if(!R||!R.fetched)return "never";var m=Math.round((Date.now()-new Date(R.fetched).getTime())/60000);return m<60?m+" min ago":m<1440?Math.round(m/60)+" h ago":Math.round(m/1440)+" d ago";}
@@ -750,13 +749,15 @@ function glance(){
   var w=wos(k);
   items.push("<div class='gl'><span class='gk'>Today</span><span class='gv'>"+esc(workText(t))+(w.length?" · "+esc(w.map(function(x){return WT[x.t].n;}).join(", ")):"")+"</span></div>");
   var noc=null;for(var i=1;i<120&&!noc;i++){var d=add(t,i);if(onCall(K(d)))noc=d;}
-  items.push("<div class='gl'><span class='gk'>Next on call</span><span class='gv'>"+(noc?fmt(noc):"None in rota")+"</span></div>");
+  items.push("<div class='gl'><span class='gk'>Next on call</span><span class='gv'>"+(noc?fmt(noc)+(Math.round((noc-t)/864e5)<=7?" · in "+Math.round((noc-t)/864e5)+" day"+(Math.round((noc-t)/864e5)===1?"":"s"):""):"None in rota")+"</span></div>");
+  return "<div class='glance stack'>"+items.join("")+"</div>";
+}
+function glanceMore(){
+  var t=today(),items=[];
   var nb=computeRuns().filter(function(r){return r.end>=t;})[0];
   items.push("<div class='gl' data-act='tab' data-v='leave'><span class='gk'>Next break</span><span class='gv'>"+(nb?fmt(nb.start)+" – "+fmt(nb.end)+" ("+nb.days+" days)":"None booked")+" ›</span></div>");
-  var m=ym(t);
-  items.push("<div class='gl' data-act='tab' data-v='month'><span class='gk'>Motion</span><span class='gv'>"+motionCount(m)+" / "+motionLimit(m)+" in "+FULLMON[t.getMonth()]+" ›</span></div>");
   items.push("<div class='gl' data-act='tab' data-v='leave'><span class='gk'>Leave left</span><span class='gv'>"+sessionsLeft()+" of "+S.annual+" ›</span></div>");
-  return "<div class='glance'>"+items.join("")+"</div>";
+  return "<div class='glance' style='margin:12px 0 0'>"+items.join("")+"</div>";
 }
 function periodStats(start,n){
   var st={clin:0,res:0,leave:0,wo:0,by:{},months:[]};
@@ -947,23 +948,6 @@ function renderSetup(){
     h+="<p class='hint'>Not connected yet. Once the GitHub job is set up, your theatre allocations, on-calls and rota leave appear here automatically"+(lsMode?"":" (in the web app version)")+".</p>";
   }
   h+="</div>";
-  // PAs
-  var pa=S.pa,sched=paSched(),oc=paSum("oncall"),spa=paSum("spa"),apa=paSum("apa"),tot=sched+oc+spa+apa;
-  h+="<div class='panel'><h2>Programmed activities</h2><p class='hint'>From your job plan (2003 contract, 8-week cycle, "+pa.weeks+" weeks in attendance). 1 PA = "+pa.stdH+" hours, or "+pa.premH+" hours in premium time (evenings, nights, weekends). Edit a figure if your job plan changes.</p>";
-  h+="<div class='tscroll'><table class='t' style='max-width:620px'><tr><th>Activity</th><th style='text-align:right'>PA / week</th></tr>";
-  var grp={sched:"Direct clinical care – timetabled",oncall:"Direct clinical care – on-call",spa:"Supporting professional activities",apa:"Additional NHS responsibilities"};
-  ["sched","oncall","spa","apa"].forEach(function(g){
-    h+="<tr><td colspan='2' style='font-weight:650;background:#f7f8fa'>"+grp[g]+"</td></tr>";
-    pa.items.forEach(function(x,ix){if(x.k!==g)return;h+="<tr><td>"+esc(x.n)+"</td><td style='text-align:right'><input type='number' step='0.0001' data-in='paitem' data-i='"+ix+"' value='"+x.pa+"' style='width:90px;text-align:right'></td></tr>";});
-  });
-  h+="<tr><td><b>Total</b> <span class='note'>(core "+(sched+oc+spa).toFixed(3)+" + additional "+apa.toFixed(3)+")</span></td><td style='text-align:right'><b>"+tot.toFixed(3)+"</b></td></tr></table></div>";
-  var yt=paYTD();
-  if(yt){
-    h+="<h2 style='margin-top:16px'>Rota against job plan</h2><p class='hint'>Timetabled sessions in the CLW rota from "+fmt(yt.from)+" to "+fmt(yt.to)+", compared with your "+sched.toFixed(2)+" timetabled DCC PAs for each week you were at work (leave and bank holidays taken out).</p>";
-    h+="<table class='t' style='max-width:460px'><tr><td>Rota sessions</td><td style='text-align:right'><b>"+yt.n+" ≈ "+yt.pa.toFixed(1)+" PA</b></td></tr><tr><td>Weeks at work</td><td style='text-align:right'><b>"+yt.aw.toFixed(1)+"</b></td></tr><tr><td>Job plan expects</td><td style='text-align:right'><b>"+yt.exp.toFixed(1)+" PA</b></td></tr><tr><td>Difference</td><td style='text-align:right'><b>"+(yt.diff>=0?"+":"")+yt.diff.toFixed(1)+" PA (≈ "+(yt.diff>=0?"+":"−")+Math.abs(yt.diff*pa.stdH).toFixed(0)+" h)</b></td></tr><tr><td>On-call days worked</td><td style='text-align:right'><b>"+yt.oc+"</b></td></tr></table>";
-    h+="<div class='note'>Sessions are valued by their actual times: weekday 07:00–19:00 at "+pa.stdH+" h per PA, any other time at "+pa.premH+" h. On-call is left out of both sides, because the job plan pays it as a fixed "+oc.toFixed(2)+" PA a week rather than by the hours rostered. It's an estimate: sessions that ran late or were swapped after publishing won't show.</div>";
-  }else h+="<div class='note'>Once the rota feed is connected, this section compares your rota sessions with the job plan.</div>";
-  h+="</div>";
   // fitness
   var m=ym(today());
   h+="<div class='panel'><h2>Fitness</h2><p class='hint'>Your Motion membership allowance. Changing it applies from this month onwards; earlier months keep their old figure.</p><div class='ctl'><label>Motion sessions per month <input type='number' min='0' max='60' data-in='motion' value='"+motionLimit(m)+"' style='width:70px'></label></div>";
@@ -993,6 +977,23 @@ function renderSetup(){
   h+="<div class='ctl'><label>Annual allowance <input type='number' data-in='annual' min='0' max='199' value='"+S.annual+"' style='width:70px'> sessions</label><label>Leave year starts <input type='date' data-in='ystart' value='"+K(yb.start)+"'></label><label>Used outside the planner <input type='number' data-in='adj' min='0' max='199' value='"+adjustNow()+"' style='width:70px'></label></div>";
   h+="<table class='t' style='max-width:440px'><tr><td>Booked in the planner</td><td style='text-align:right'><b>"+plannerLeave()+"</b></td></tr><tr><td>Used outside the planner</td><td style='text-align:right'><b>"+adjustNow()+"</b></td></tr><tr><td>Total used</td><td style='text-align:right'><b>"+leaveCount()+" / "+S.annual+"</b></td></tr><tr><td>Left</td><td style='text-align:right'><b>"+sessionsLeft()+"</b></td></tr></table>";
   h+="<div class='ctl' style='margin-top:12px'><label>Week 1 starts (Monday) <input type='date' data-in='anchor' value='"+S.anchor+"'></label><label><input type='checkbox' data-in='resfree' "+(S.researchFree?"checked":"")+"> Count research as free time for breaks</label></div></div>";
+  // PAs
+  var pa=S.pa,sched=paSched(),oc=paSum("oncall"),spa=paSum("spa"),apa=paSum("apa"),tot=sched+oc+spa+apa;
+  h+="<div class='panel'><h2>Programmed activities</h2><p class='hint'>From your job plan (2003 contract, 8-week cycle, "+pa.weeks+" weeks in attendance). 1 PA = "+pa.stdH+" hours, or "+pa.premH+" hours in premium time (evenings, nights, weekends). Edit a figure if your job plan changes.</p>";
+  h+="<div class='tscroll'><table class='t' style='max-width:620px'><tr><th>Activity</th><th style='text-align:right'>PA / week</th></tr>";
+  var grp={sched:"Direct clinical care – timetabled",oncall:"Direct clinical care – on-call",spa:"Supporting professional activities",apa:"Additional NHS responsibilities"};
+  ["sched","oncall","spa","apa"].forEach(function(g){
+    h+="<tr><td colspan='2' style='font-weight:650;background:#f7f8fa'>"+grp[g]+"</td></tr>";
+    pa.items.forEach(function(x,ix){if(x.k!==g)return;h+="<tr><td>"+esc(x.n)+"</td><td style='text-align:right'><input type='number' step='0.0001' data-in='paitem' data-i='"+ix+"' value='"+x.pa+"' style='width:90px;text-align:right'></td></tr>";});
+  });
+  h+="<tr><td><b>Total</b> <span class='note'>(core "+(sched+oc+spa).toFixed(3)+" + additional "+apa.toFixed(3)+")</span></td><td style='text-align:right'><b>"+tot.toFixed(3)+"</b></td></tr></table></div>";
+  var yt=paYTD();
+  if(yt){
+    h+="<h2 style='margin-top:16px'>Rota against job plan</h2><p class='hint'>Timetabled sessions in the CLW rota from "+fmt(yt.from)+" to "+fmt(yt.to)+", compared with your "+sched.toFixed(2)+" timetabled DCC PAs for each week you were at work (leave and bank holidays taken out).</p>";
+    h+="<table class='t' style='max-width:460px'><tr><td>Rota sessions</td><td style='text-align:right'><b>"+yt.n+" ≈ "+yt.pa.toFixed(1)+" PA</b></td></tr><tr><td>Weeks at work</td><td style='text-align:right'><b>"+yt.aw.toFixed(1)+"</b></td></tr><tr><td>Job plan expects</td><td style='text-align:right'><b>"+yt.exp.toFixed(1)+" PA</b></td></tr><tr><td>Difference</td><td style='text-align:right'><b>"+(yt.diff>=0?"+":"")+yt.diff.toFixed(1)+" PA (≈ "+(yt.diff>=0?"+":"−")+Math.abs(yt.diff*pa.stdH).toFixed(0)+" h)</b></td></tr><tr><td>On-call days worked</td><td style='text-align:right'><b>"+yt.oc+"</b></td></tr></table>";
+    h+="<div class='note'>Sessions are valued by their actual times: weekday 07:00–19:00 at "+pa.stdH+" h per PA, any other time at "+pa.premH+" h. On-call is left out of both sides, because the job plan pays it as a fixed "+oc.toFixed(2)+" PA a week rather than by the hours rostered. It's an estimate: sessions that ran late or were swapped after publishing won't show.</div>";
+  }else h+="<div class='note'>Once the rota feed is connected, this section compares your rota sessions with the job plan.</div>";
+  h+="</div>";
   // blocks
   h+="<div class='panel'><h2>Booked or unavailable periods</h2><p class='hint'>Labels for periods such as half-terms. Booked periods count as time off; unavailable ones flag any leave you book in them.</p><div class='tscroll'><table class='t'><tr><th>Label</th><th>From</th><th>To</th><th>Type</th><th></th></tr>";
   S.blocks.forEach(function(b){
