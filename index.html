@@ -403,6 +403,7 @@ function migrate(){
   if(!S.workouts)S.workouts={};
   if(!S.motionPlans)S.motionPlans=[{from:"2026-11",n:5}];
   if(!S.fixedNames)S.fixedNames=FIXNAME;
+  if(S.dlEnd===undefined)S.dlEnd="2026-12-31";
   if(!S.pa)S.pa={dcc:7.092,spa:2,apa:3,weeks:42,premH:3,stdH:4};
   if(!S.pa.items)S.pa.items=[
     {n:"Theatre – Operating Session",pa:5.3127,k:"sched"},
@@ -574,6 +575,8 @@ function nextDateFor(w,wd){
 
 // ---------- workouts ----------
 function wos(k){return S.workouts[k]||[];}
+// Workout types offered on a day: David Lloyd stops being offered after its last day, but existing entries stay
+function wtkOn(k,keep){return WTK.filter(function(t){return t!=="dl"||t===keep||!S.dlEnd||k<=S.dlEnd;});}
 function woTemplate(d){
   var w=rotaWeek(d)%4,wd=dow(d),key=w+"-"+wd;
   if(S.woTemplate&&S.woTemplate[key]!=null)return S.woTemplate[key];
@@ -1082,6 +1085,7 @@ function setupFitness(){
       g+="<div class='pc'><input type='text' id='in-wot-"+k+"' data-in='wot' data-k='"+k+"' value='"+esc(val)+"' placeholder='–' aria-label='Week "+(w+1)+" "+DOW[d]+"'></div>";}
   }
   return sec("Motion membership","<div class='card'>"+frow("Sessions per month",num("motion",motionLimit(m),"min='0' max='60' step='1'"))+"</div>","The count starts again on the 1st. A change applies from this month onwards and leaves earlier months as they were.")+
+    sec("David Lloyd","<div class='card'>"+frow("Last day of membership","<input type='date' id='in-dlend' data-in='dlend' value='"+esc(S.dlEnd||"")+"'>")+"</div>","After this date, David Lloyd is no longer offered when you add a workout. Sessions already planned stay as they are. Clear the date to keep it available.")+
     sec("Suggested workout slots","<div class='card pad'>"+g+"</div></div></div>","Shown as a dashed slot in the Week view on days with nothing planned. Rows are rota weeks. Clear a box to remove a suggestion.");
 }
 function setupPlan(){
@@ -1181,12 +1185,12 @@ function renderDlg(){
   // fitness
   var mc=motionCount(m),ml=motionLimit(m),ft="",tm=woTemplate(d);
   w.forEach(function(x,i){
-    ft+="<div class='card wcard'><span class='tg "+x.t+"'>"+WT[x.t].t+"</span><select id='in-wt-"+i+"' data-in='wt' data-i='"+i+"' aria-label='Type'>"+WTK.map(function(t){return "<option value='"+t+"'"+(x.t===t?" selected":"")+">"+WT[t].long+"</option>";}).join("")+"</select>"+
+    ft+="<div class='card wcard'><span class='tg "+x.t+"'>"+WT[x.t].t+"</span><select id='in-wt-"+i+"' data-in='wt' data-i='"+i+"' aria-label='Type'>"+wtkOn(k,x.t).map(function(t){return "<option value='"+t+"'"+(x.t===t?" selected":"")+">"+WT[t].long+"</option>";}).join("")+"</select>"+
       "<button class='rm' data-act='wrm' data-i='"+i+"' aria-label='Remove workout'>"+svg(IC.x,18)+"</button>"+
       "<div class='w2'><select id='in-ww-"+i+"' data-in='ww' data-i='"+i+"' aria-label='When'>"+WHENK.map(function(t){return "<option value='"+t+"'"+(x.w===t?" selected":"")+">"+WHEN[t]+"</option>";}).join("")+"</select>"+
       "<input type='text' id='in-wn-"+i+"' data-in='wn' data-i='"+i+"' value='"+esc(x.n||"")+"' placeholder='Details' aria-label='Details'></div></div>";
   });
-  ft+="<div class='addrow'>"+WTK.map(function(t){return "<button data-act='wadd' data-t='"+t+"'><span class='tg "+t+"'>"+WT[t].t+"</span>"+WT[t].n+"</button>";}).join("")+"</div>";
+  ft+="<div class='addrow'>"+wtkOn(k).map(function(t){return "<button data-act='wadd' data-t='"+t+"'><span class='tg "+t+"'>"+WT[t].t+"</span>"+WT[t].n+"</button>";}).join("")+"</div>";
   h+=sec("Fitness <span"+(mc>ml?" class='over'":"")+">Motion "+mc+" / "+ml+" in "+FULLMON[d.getMonth()]+"</span>",ft,!w.length&&tm?"Suggested slot: "+esc(tm)+".":"");
   h+=sec("Note","<div class='card'><textarea id='in-dnote' data-in='dnote' rows='2' placeholder='Anything else for the day, such as school run or a late finish' style='background:none;border-radius:0;padding:12px 16px;display:block'>"+esc(S.notes[k]||"")+"</textarea></div>");
   dlg.innerHTML=h+"</div>";
@@ -1266,6 +1270,7 @@ document.addEventListener("change",function(ev){
     case "lf":listFrom=el.value||null;render();break;
     case "lt":listTo=el.value||null;render();break;
     case "motion":{var m=ym(today()),n=Math.max(0,parseInt(el.value,10)||0);S.motionPlans=S.motionPlans.filter(function(p){return p.from!==m;});S.motionPlans.push({from:m,n:n});changed();break;}
+    case "dlend":S.dlEnd=el.value||"";changed(true);break;
     case "wot":if(!S.woTemplate)S.woTemplate={};S.woTemplate[el.dataset.k]=el.value.trim();changed(true);break;
     case "mirror":editMirror=el.checked;break;
     case "annual":S.annual=Math.max(0,parseInt(el.value,10)||0);changed();break;
