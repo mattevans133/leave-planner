@@ -693,14 +693,30 @@ function syncPull(){
     return rotaChanged;
   }).catch(function(e){syncText=syncErr(e);return false;});
 }
+// Take whatever is stored in the gist. Used when a device first connects, so it can never overwrite the store.
+function syncAdopt(){
+  return ghFetch("GET","/gists/"+gh.gist).then(function(g){
+    var rf=g.files&&g.files["rota.json"];
+    if(rf&&rf.content){try{R=JSON.parse(rf.content);localStorage.setItem("lp-rota",rf.content);}catch(e){}}
+    var f=g.files&&g.files[GIST_FILE];
+    if(f&&f.content){var o=JSON.parse(f.content);if(o&&o.leave){S=o;migrate();try{localStorage.setItem("leave-planner-state",JSON.stringify(S));}catch(e){}}}
+    resetCaches();syncText="Synced "+hhmm();
+  });
+}
 function syncConnect(token,gist){
   gh.token=token.trim();gh.gist=(gist||"").trim().replace(/^.*\//,"");
   try{localStorage.setItem("lp-gh-token",gh.token);}catch(e){}
   var p;
-  if(gh.gist)p=syncPull();
-  else{var files={};files[GIST_FILE]={content:JSON.stringify(S)};
-    p=ghFetch("POST","/gists",{description:"Leave Planner data",public:false,files:files}).then(function(g){gh.gist=g.id;syncText="Synced "+hhmm();});}
-  return p.then(function(){try{localStorage.setItem("lp-gh-gist",gh.gist);}catch(e){}});
+  if(gh.gist)p=syncAdopt();
+  else p=ghFetch("GET","/gists?per_page=100").then(function(list){
+    // No ID given: look for an existing planner store before creating a new one
+    var mine=(list||[]).filter(function(g){return g.files&&g.files[GIST_FILE];});
+    mine.sort(function(a,b){return (b.files["rota.json"]?1:0)-(a.files["rota.json"]?1:0)||(a.created_at<b.created_at?-1:1);});
+    if(mine.length){gh.gist=mine[0].id;return syncAdopt();}
+    var files={};files[GIST_FILE]={content:JSON.stringify(S)};
+    return ghFetch("POST","/gists",{description:"Leave Planner data",public:false,files:files}).then(function(g){gh.gist=g.id;syncText="Synced "+hhmm();});
+  });
+  return p.then(function(){try{localStorage.setItem("lp-gh-gist",gh.gist);}catch(e){}},function(e){gh.gist="";throw e;});
 }
 function syncDisconnect(){gh={token:"",gist:""};syncText="";try{localStorage.removeItem("lp-gh-token");localStorage.removeItem("lp-gh-gist");}catch(e){}}
 function rotaAge(){if(!R||!R.fetched)return "never";var m=Math.round((Date.now()-new Date(R.fetched).getTime())/60000);return m<60?m+" min ago":m<1440?Math.round(m/60)+" h ago":Math.round(m/1440)+" d ago";}
@@ -1122,7 +1138,7 @@ function setupOnCall(){
 }
 function setupSync(){
   if(gh.token&&gh.gist)return sec("","<div class='card'>"+row("Status","<b>On</b>")+"<div class='row'><span class='l'>Gist ID<span class='cap'><code>"+esc(gh.gist)+"</code></span></span><button class='btn sm' data-act='gcopy'>Copy</button></div></div><div class='card'><button class='row center' data-act='gnow'>Sync now</button><button class='row center dan' data-act='goff'>Turn off on this device</button></div>","Changes save to a secret gist on your GitHub account. Your other devices pick them up when they open the planner. To add a device, enter your token and this Gist ID there.");
-  return sec("","<div class='card'>"+frow("Token","<input type='password' id='gtok' placeholder='ghp_…' autocomplete='off' autocapitalize='off' autocorrect='off' spellcheck='false' style='flex:1.6;min-width:0'>")+frow("Gist ID","<input type='text' id='ggist' placeholder='Blank on your first device' autocomplete='off' autocapitalize='off' autocorrect='off' spellcheck='false' style='flex:1.6;min-width:0'>")+"</div><div class='card'><button class='row center' data-act='gon'>Turn on sync</button></div><p class='foot' id='gmsg' role='status'></p>","Keeps your laptop, iPad and phone in step. You need a GitHub token (classic) with only the gist permission. It is stored on this device and sent only to GitHub.");
+  return sec("","<div class='card'>"+frow("Token","<input type='password' id='gtok' placeholder='ghp_…' autocomplete='off' autocapitalize='off' autocorrect='off' spellcheck='false' style='flex:1.6;min-width:0'>")+frow("Gist ID","<input type='text' id='ggist' placeholder='Optional: found automatically' autocomplete='off' autocapitalize='off' autocorrect='off' spellcheck='false' style='flex:1.6;min-width:0'>")+"</div><div class='card'><button class='row center' data-act='gon'>Turn on sync</button></div><p class='foot' id='gmsg' role='status'></p>","Keeps your laptop, iPad and phone in step. You need a GitHub token (classic) with only the gist permission. It is stored on this device and sent only to GitHub.");
 }
 function setupBackup(){
   return sec("Backup","<div class='card pad'><div class='copyrow' style='margin-bottom:10px'><button class='btn sm' data-act='bkcopy'>Copy backup code</button><span id='bkmsg' class='msg' role='status'></span></div><textarea id='bkin' class='lta' rows='3' placeholder='Paste a backup code here' aria-label='Backup code'></textarea><div style='margin-top:10px'><button class='btn sm' data-act='bkrestore'>Restore from code</button></div></div>","Copies everything: job plan, planned leave, workouts and notes.")+
